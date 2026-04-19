@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+/* ===== TIMVERSE Design System ===== */
+
+/* Light theme (default) */
+:root,
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --accent: #0ea5e9;
+  --accent-light: #e0f2fe;
+  --accent-dark: #0284c7;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --shadow-color: 0 0% 0%;
+  --card-bg: #ffffff;
+  --card-hover-bg: #fafbfc;
+  --navbar-bg: rgba(255, 255, 255, 0.85);
+  --ticker-bg: #0f172a;
+  --ticker-text: #f8fafc;
+  --admin-sidebar-bg: #f8fafc;
+  --input-bg: #f8fafc;
+  --badge-bg: #e0f2fe;
+  --badge-text: #0369a1;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  color-scheme: light;
+}
+
+/* Dark theme (Balanced Neutral - Not too dark) */
+[data-theme="dark"] {
+  --bg-primary: #121214;
+  /* Softer Dark Gray */
+  --bg-secondary: #1e1e21;
+  /* Balanced Charcoal */
+  --bg-tertiary: #27272a;
+  /* Zinc 800 */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #6366f1;
+  /* Indigo Accent */
+  --accent-light: #312e81;
+  --accent-dark: #818cf8;
+  --border: #2d2d30;
+  /* Softer Border */
+  --border-light: #1e1e21;
+  --shadow-color: 0 0% 0%;
+  --card-bg: #18181b;
+  /* Zinc 900 Card */
+  --card-hover-bg: #202024;
+  --navbar-bg: rgba(18, 18, 20, 0.85);
+  --ticker-bg: #1e1e21;
+  --ticker-text: #fafafa;
+  --admin-sidebar-bg: #121214;
+  --input-bg: #1e1e21;
+  --badge-bg: #1e1b4b;
+  --badge-text: #818cf8;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  color-scheme: dark;
+}
+
+/* ===== Tailwind 4 Theme Tokens ===== */
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-surface: var(--bg-secondary);
+  --color-surface-alt: var(--bg-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
+  --color-muted: var(--text-muted);
+  --color-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+  --color-card: var(--card-bg);
+  --color-card-hover: var(--card-hover-bg);
+  --color-navbar: var(--navbar-bg);
+  --color-ticker-bg: var(--ticker-bg);
+  --color-ticker-text: var(--ticker-text);
+  --color-sidebar: var(--admin-sidebar-bg);
+  --color-input: var(--input-bg);
+  --color-badge-bg: var(--badge-bg);
+  --color-badge-text: var(--badge-text);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --font-sans: var(--font-outfit);
+  --font-serif: var(--font-outfit);
+  --font-mono: var(--font-geist-mono);
+
+  --animate-ticker: ticker 30s linear infinite;
+  --animate-fade-in: fadeIn 0.6s ease-out forwards;
+  --animate-slide-up: slideUp 0.5s ease-out forwards;
+  --animate-pulse-soft: pulseSoft 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulseSoft {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.7;
+    }
+  }
+}
+
+/* ===== Global Base Styles ===== */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-outfit), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Mobile PWA Adjustments ===== */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ===== Scrollbar Styling ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Hide scrollbar for ticker and horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Selection Color ===== */
+::selection {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* ===== Focus states ===== */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== Mobile bottom nav spacer ===== */
+@media (max-width: 768px) {
+  main {
+    padding-bottom: 5rem;
+  }
+}
+
+/* ===== Skeleton Shimmer Effect ===== */
+.skeleton-shimmer {
+  background: linear-gradient(90deg,
+      var(--bg-tertiary) 0%,
+      var(--bg-secondary) 40%,
+      var(--bg-tertiary) 60%,
+      var(--bg-tertiary) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
