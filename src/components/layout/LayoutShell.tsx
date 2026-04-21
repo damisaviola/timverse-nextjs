@@ -9,11 +9,12 @@ import ScrollToTop from "@/components/ui/ScrollToTop";
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
+  const isAuth = pathname === "/login" || pathname === "/register";
 
   return (
     <>
-      {isAdmin ? (
-        children
+      {isAdmin || isAuth ? (
+        <div className="flex-1 min-h-screen">{children}</div>
       ) : (
         <>
           <Navbar />

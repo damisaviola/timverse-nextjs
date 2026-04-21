@@ -6,12 +6,31 @@ import {
   MessageSquare, FileText, CheckCircle2, 
   ChevronRight, ArrowLeft 
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+
+// FilePond Imports
+import { FilePond, registerPlugin } from "react-filepond";
+import "filepond/dist/filepond.min.css";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+import FilePondPluginFileValidateSize from "filepond-plugin-file-validate-size";
+
+// Register FilePond Plugins
+if (typeof window !== "undefined") {
+  registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
+}
 
 export default function UserReportPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [files, setFiles] = useState<any[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +78,49 @@ export default function UserReportPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16" id="report-page">
+      <style jsx global>{`
+        /* Modern FilePond Customization */
+        .filepond--root {
+          margin-bottom: 0 !important;
+          font-family: inherit;
+        }
+        .filepond--panel-root {
+          background-color: var(--bg-tertiary);
+          border: 2px dashed var(--border);
+          opacity: 0.4;
+          border-radius: 1.5rem;
+        }
+        .filepond--drop-label {
+          color: var(--color-muted);
+          cursor: pointer;
+        }
+        .filepond--label-action {
+          text-decoration-color: rgba(99, 102, 241, 0.5);
+          color: #6366f1;
+          font-weight: 800;
+        }
+        .filepond--item-panel {
+          border-radius: 1rem;
+          background-color: #6366f1 !important;
+          box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
+        }
+        .filepond--file-action-button {
+          background-color: rgba(0, 0, 0, 0.5);
+          cursor: pointer;
+          backdrop-filter: blur(4px);
+          transition: all 0.2s ease;
+        }
+        .filepond--file-action-button:hover {
+          background-color: rgba(0, 0, 0, 0.8);
+          transform: scale(1.1);
+        }
+        .filepond--image-preview {
+          background: var(--bg-tertiary);
+        }
+        .filepond--credits {
+          display: none;
+        }
+      `}</style>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
         {/* Header Column */}
         <div className="lg:col-span-2 space-y-6">
@@ -117,39 +179,85 @@ export default function UserReportPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Jenis Laporan</label>
-                  <select className="w-full bg-surface-alt/40 border border-border/60 rounded-xl px-5 py-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all appearance-none cursor-pointer">
-                    <option>Pilih jenis laporan...</option>
-                    <option>Bug/Masalah Teknis</option>
-                    <option>Typo/Kesalahan Penulisan</option>
-                    <option>Konten Tidak Sesuai</option>
-                    <option>Saran & Masukan</option>
-                    <option>Lainnya</option>
-                  </select>
+                  <div className="relative group">
+                    <select className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all appearance-none cursor-pointer group-hover:bg-surface-alt/40">
+                      <option>Pilih jenis laporan...</option>
+                      <option>Bug/Masalah Teknis</option>
+                      <option>Typo/Kesalahan Penulisan</option>
+                      <option>Konten Tidak Sesuai</option>
+                      <option>Saran & Masukan</option>
+                      <option>Lainnya</option>
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                      <ChevronRight size={14} className="rotate-90" />
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Email (Optional)</label>
-                  <input 
-                    type="email" 
-                    placeholder="nama@email.com" 
-                    className="w-full bg-surface-alt/40 border border-border/60 rounded-xl px-5 py-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-                  />
+                  <div className="group">
+                    <input 
+                      type="email" 
+                      placeholder="nama@email.com" 
+                      className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all group-hover:bg-surface-alt/40"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Deskripsi Masalah</label>
-                <textarea 
-                  rows={5}
-                  placeholder="Ceritakan detail masalah atau masukan Anda..."
-                  className="w-full bg-surface-alt/40 border border-border/60 rounded-2xl px-5 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none"
-                ></textarea>
+                <div className="group">
+                  <textarea 
+                    rows={5}
+                    placeholder="Ceritakan detail masalah atau masukan Anda..."
+                    className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none group-hover:bg-surface-alt/40"
+                  ></textarea>
+                </div>
               </div>
 
               <div className="space-y-2.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Lampiran Gambar (Optional)</label>
-                <div className="border-2 border-dashed border-border/60 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-accent/40 transition-colors cursor-pointer group">
-                  <FileText className="text-muted group-hover:text-accent transition-colors mb-2" size={24} />
-                  <p className="text-[10px] font-bold text-muted group-hover:text-foreground transition-colors uppercase tracking-widest text-center">Tarik gambar atau klik untuk upload bukti</p>
+                <div className="relative group overflow-hidden rounded-[1.5rem]">
+                  {!isMounted ? (
+                    <div className="h-[120px] w-full bg-surface-alt/20 animate-pulse rounded-[1.5rem] flex items-center justify-center border border-dashed border-border/40">
+                       <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Menyiapkan Upload...</span>
+                    </div>
+                  ) : (
+                    <FilePond
+                      files={files}
+                      onupdatefiles={setFiles}
+                      allowMultiple={true}
+                      maxFiles={3}
+                      name="files"
+                      labelIdle='Tarik & Lepas gambar atau <span class="filepond--label-action">Pilih File</span>'
+                      acceptedFileTypes={["image/*"]}
+                      labelFileTypeNotAllowed="Hanya file gambar yang diizinkan"
+                      maxFileSize="500KB"
+                      labelMaxFileSizeExceeded="File terlalu besar"
+                      labelMaxFileSize="Ukuran maksimum adalah {filesize}"
+                      server={{
+                        process: (fieldName, file, metadata, load, error, progress, abort) => {
+                          let p = 0;
+                          const interval = setInterval(() => {
+                            p += 5;
+                            progress(true, p, 100);
+                            if (p >= 100) {
+                              clearInterval(interval);
+                              load(file);
+                            }
+                          }, 100);
+                          return { abort: () => { clearInterval(interval); abort(); } };
+                        }
+                      }}
+                      imagePreviewHeight={170}
+                      stylePanelLayout="compact"
+                      styleLoadIndicatorPosition="center bottom"
+                      styleProgressIndicatorPosition="right bottom"
+                      styleButtonRemoveItemPosition="left bottom"
+                      styleButtonProcessItemPosition="right bottom"
+                    />
+                  )}
                 </div>
               </div>
 

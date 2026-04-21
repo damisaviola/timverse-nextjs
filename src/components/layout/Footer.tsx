@@ -27,10 +27,10 @@ export default function Footer() {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-4">Navigasi</h3>
               <ul className="space-y-2.5">
-                {["Beranda", "Kategori", "Kontribusi", "Tentang"].map((item) => (
+                {["Beranda", "Blog", "Kategori", "Kontribusi", "Tentang"].map((item) => (
                   <li key={item}>
                     <Link
-                      href={item === "Beranda" ? "/" : item === "Kategori" ? "/category" : item === "Kontribusi" ? "/contribute" : "/"}
+                      href={item === "Beranda" ? "/" : item === "Blog" ? "/blog" : item === "Kategori" ? "/category" : item === "Kontribusi" ? "/contribute" : "/"}
                       className="text-sm text-secondary hover:text-accent transition-colors duration-200"
                     >
                       {item}
@@ -103,11 +103,12 @@ export default function Footer() {
             </h3>
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                { label: "Beranda", href: "/" },
-                { label: "Kategori", href: "/category" },
-                { label: "Kontribusi", href: "/contribute" },
-                { label: "Admin", href: "/admin" },
-                { label: "Tentang", href: "/" },
+                 { label: "Beranda", href: "/" },
+                 { label: "Blog", href: "/blog" },
+                 { label: "Kategori", href: "/category" },
+                 { label: "Kontribusi", href: "/contribute" },
+                 { label: "Admin", href: "/admin" },
+                 { label: "Tentang", href: "/" },
               ].map((link) => (
                 <Link
                   key={link.label}

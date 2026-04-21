@@ -7,12 +7,13 @@ import { Home, LayoutGrid, Search, Settings, X, TrendingUp, Clock, PenSquare, Al
 import { motion, AnimatePresence } from "framer-motion";
 import { newsArticles } from "@/data/mockNews";
 import { formatDate } from "@/lib/utils";
+import { vibrateDevice } from "@/lib/vibrate";
 
 const tabs = [
   { label: "Beranda", href: "/", icon: Home },
+  { label: "Blog", href: "/blog", icon: PenSquare },
   { label: "Kategori", href: "/category", icon: LayoutGrid },
-  { label: "Laporan", href: "/report", icon: AlertCircle },
-  { label: "Kontribusi", href: "/contribute", icon: PenSquare },
+  { label: "Kontribusi", href: "/contribute", icon: Settings },
   { label: "Cari", href: "#search", icon: Search },
 ];
 
@@ -105,8 +106,9 @@ export default function MobileNav() {
                   placeholder="Cari berita, topik, kategori..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl bg-surface border border-border pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-                  id="mobile-search-input"
+                  className="w-full rounded-full bg-surface border border-border pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all duration-200"
+                  id="desktop-search"
+                  aria-label="Cari artikel atau topik"
                 />
               </div>
               <button
@@ -237,9 +239,14 @@ export default function MobileNav() {
               <Link
                 key={tab.label}
                 href={isSearch ? "#" : tab.href}
-                onClick={(e) => handleTabClick(tab.href, e)}
+                onClick={(e) => {
+                  vibrateDevice(5);
+                  handleTabClick(tab.href, e);
+                }}
                 className="relative flex flex-col items-center justify-center flex-1 py-1.5 group"
                 id={`mobile-tab-${tab.label.toLowerCase()}`}
+                aria-label={`Navigasi ke ${tab.label}`}
+                aria-current={active ? "page" : undefined}
               >
                 {/* Active Pill Indicator */}
                 {active && (

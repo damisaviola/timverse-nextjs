@@ -6,6 +6,10 @@ import {
   Atom,
   Landmark,
   LayoutGrid,
+  Newspaper,
+  Compass,
+  Brain,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -50,5 +54,25 @@ export const categoryIcons: Record<string, CategoryIconData> = {
     icon: Landmark,
     color: "text-red-500",
     gradient: "from-red-500 to-rose-400",
+  },
+  Media: {
+    icon: Newspaper,
+    color: "text-indigo-500",
+    gradient: "from-indigo-500 to-blue-400",
+  },
+  Career: {
+    icon: Compass,
+    color: "text-teal-500",
+    gradient: "from-teal-500 to-emerald-400",
+  },
+  Psychology: {
+    icon: Brain,
+    color: "text-violet-500",
+    gradient: "from-violet-500 to-purple-400",
+  },
+  "Inside TIMVERSE": {
+    icon: Sparkles,
+    color: "text-amber-500",
+    gradient: "from-amber-500 to-yellow-400",
   },
 };

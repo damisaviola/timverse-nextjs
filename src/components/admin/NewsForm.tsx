@@ -14,10 +14,11 @@ import "filepond/dist/filepond.min.css";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+import FilePondPluginFileValidateSize from "filepond-plugin-file-validate-size";
 
 // Register FilePond Plugins
 if (typeof window !== "undefined") {
-  registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
+  registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
 }
 
 // Dynamically import TinyMCE with SSR disabled
@@ -127,18 +128,20 @@ export default function NewsForm() {
         <div className="lg:col-span-8 space-y-8">
           {/* Title Card */}
           <div className="bg-card border border-border/60 rounded-[2rem] p-8 shadow-sm ring-1 ring-black/[0.02] dark:ring-white/[0.01] transition-all focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/40">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500/80 flex items-center gap-2">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                 Judul Berita Utama
               </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Berisikan judul berita yang kuat dan menarik perhatian..."
-                className="w-full bg-transparent border-none p-0 text-3xl md:text-4xl font-black text-foreground placeholder:text-muted/20 focus:outline-none focus:ring-0 transition-all tracking-tight"
-              />
+              <div className="relative group">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Berisikan judul berita yang kuat dan menarik perhatian..."
+                  className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-8 py-7 text-3xl md:text-4xl font-black text-foreground placeholder:text-muted/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all tracking-tight"
+                />
+              </div>
             </div>
           </div>
 
@@ -167,14 +170,14 @@ export default function NewsForm() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-surface-alt/40 border border-border/60 rounded-xl px-5 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer group-hover:bg-surface-alt/60"
+                    className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer group-hover:bg-surface-alt/40"
                   >
                     <option value="">Pilih kategori berita...</option>
                     {categories.slice(1).map((cat) => (
                       <option key={cat.name} value={cat.name}>{cat.name}</option>
                     ))}
                   </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
                     <ChevronRight size={14} className="rotate-90" />
                   </div>
                 </div>
@@ -189,12 +192,12 @@ export default function NewsForm() {
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleAddTag}
                     placeholder="Ketik & Tekan Enter..."
-                    className="w-full bg-surface-alt/40 border border-border/60 rounded-xl px-4 py-3 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all pr-12"
+                    className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all pr-14 group-hover:bg-surface-alt/40"
                   />
                   <button 
                     type="button"
                     onClick={() => handleAddTag()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
                   >
                     <Plus size={14} />
                   </button>
@@ -241,6 +244,9 @@ export default function NewsForm() {
                     labelIdle='Tarik & Lepas gambar atau <span class="filepond--label-action">Pilih File</span>'
                     acceptedFileTypes={["image/*"]}
                     labelFileTypeNotAllowed="Hanya file gambar yang diizinkan"
+                    maxFileSize="500KB"
+                    labelMaxFileSizeExceeded="File terlalu besar"
+                    labelMaxFileSize="Ukuran maksimum adalah {filesize}"
                     server={{
                       process: (fieldName, file, metadata, load, error, progress, abort) => {
                         // Simulated Upload Progress Animation (2 seconds)
@@ -277,7 +283,7 @@ export default function NewsForm() {
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
                   placeholder="Gambarkan inti berita secara singkat untuk menarik pembaca..."
-                  className="w-full h-36 bg-surface-alt/40 border border-border/60 rounded-xl px-5 py-4 text-xs font-medium text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none leading-relaxed"
+                  className="w-full h-36 bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-5 text-xs font-medium text-foreground placeholder:text-muted/40 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none leading-relaxed group-hover:bg-surface-alt/40"
                 />
               </div>
             </div>

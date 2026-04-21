@@ -14,7 +14,7 @@ export default function TinyEditor({ value, onChange }: TinyEditorProps) {
   return (
     <div className="w-full rounded-[2rem] overflow-hidden border border-border/40 shadow-sm transition-all focus-within:ring-2 focus-within:ring-indigo-500/20">
       <Editor
-        apiKey="yoxf2duuzbc3kgfb2lc7fsl76on733l64csjdnjmxs4ymuby" // User can replace this with their own key
+        apiKey={process.env.NEXT_PUBLIC_TINY_API_KEY}
         value={value}
         onEditorChange={onChange}
         // Force re-render on theme change to update skin
