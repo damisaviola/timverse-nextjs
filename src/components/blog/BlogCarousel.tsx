@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import { BlogPost } from "@/data/mockBlogs";
 import { vibrateDevice } from "@/lib/vibrate";
@@ -40,40 +40,41 @@ export default function BlogCarousel({ posts }: BlogCarouselProps) {
   };
 
   return (
-    <section className="mb-24 relative group">
+    <section className="mb-10 sm:mb-16 relative group">
       {/* Section Header */}
-      <div className="flex items-end justify-between mb-10">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-fuchsia-500/10 rounded-2xl text-fuchsia-500">
-            <Sparkles size={24} />
+      <div className="flex items-end justify-between mb-5 sm:mb-8">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="p-2.5 sm:p-3 bg-fuchsia-500/10 rounded-xl sm:rounded-2xl text-fuchsia-500">
+            <Sparkles size={20} className="sm:hidden" />
+            <Sparkles size={24} className="hidden sm:block" />
           </div>
           <div>
-            <h3 className="text-3xl font-black text-foreground tracking-tight">Spotlight Thoughts</h3>
-            <p className="text-[11px] text-muted font-bold uppercase tracking-widest mt-1">Eksplorasi mendalam pilihan redaksi</p>
+            <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-foreground tracking-tight">Spotlight Thoughts</h3>
+            <p className="text-[10px] sm:text-[11px] text-muted font-bold uppercase tracking-widest mt-0.5">Eksplorasi mendalam pilihan redaksi</p>
           </div>
         </div>
 
         {/* Navigation Buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
-            className={`w-12 h-12 rounded-full border border-border/60 flex items-center justify-center transition-all ${
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-border/60 flex items-center justify-center transition-all ${
               canScrollLeft ? "bg-surface hover:bg-accent hover:text-white hover:border-accent" : "opacity-30 cursor-not-allowed"
             }`}
             aria-label="Geser kiri"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </button>
           <button
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
-            className={`w-12 h-12 rounded-full border border-border/60 flex items-center justify-center transition-all ${
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-border/60 flex items-center justify-center transition-all ${
               canScrollRight ? "bg-surface hover:bg-accent hover:text-white hover:border-accent" : "opacity-30 cursor-not-allowed"
             }`}
             aria-label="Geser kanan"
           >
-            <ArrowRight size={20} />
+            <ArrowRight size={18} />
           </button>
         </div>
       </div>
@@ -82,7 +83,7 @@ export default function BlogCarousel({ posts }: BlogCarouselProps) {
       <div 
         ref={scrollRef}
         onScroll={checkScroll}
-        className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory no-scrollbar scroll-smooth"
+        className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 sm:pb-8 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {posts.map((post, index) => (
@@ -92,12 +93,12 @@ export default function BlogCarousel({ posts }: BlogCarouselProps) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
-            className="flex-shrink-0 w-[85vw] md:w-[450px] lg:w-[500px] snap-center first:ml-0 gpu-accelerated"
+            className="flex-shrink-0 w-[80vw] sm:w-[380px] md:w-[420px] lg:w-[460px] snap-center first:ml-0 gpu-accelerated"
           >
             <motion.div 
               whileHover={{ y: -8 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-card border border-border/60 rounded-[3rem] overflow-hidden group/card shadow-xl shadow-black/5 hover:shadow-accent/10 transition-all duration-500 h-full flex flex-col"
+              className="bg-card border border-border/60 rounded-2xl sm:rounded-3xl overflow-hidden group/card shadow-xl shadow-black/5 hover:shadow-accent/10 transition-all duration-500 h-full flex flex-col"
             >
               <Link href={`/blog/${post.slug}`} className="block relative aspect-[16/9] overflow-hidden">
                 <div 
@@ -105,36 +106,36 @@ export default function BlogCarousel({ posts }: BlogCarouselProps) {
                   style={{ background: post.coverImage }}
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover/card:bg-black/0 transition-colors duration-500" />
-                <div className="absolute bottom-6 left-6">
-                   <div className="flex items-center gap-2 px-4 py-2 bg-white/90 dark:bg-black/95 backdrop-blur-xl rounded-full text-[10px] font-black uppercase tracking-widest text-foreground shadow-2xl border border-white/20">
+                <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6">
+                   <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/90 dark:bg-black/95 backdrop-blur-xl rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-foreground shadow-2xl border border-white/20">
                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                      {post.category}
                    </div>
                 </div>
               </Link>
               
-              <div className="p-8 flex flex-col flex-1">
+              <div className="p-4 sm:p-6 lg:p-8 flex flex-col flex-1">
                 <Link href={`/blog/${post.slug}`}>
-                  <h4 className="text-2xl font-black text-foreground group-hover/card:text-accent transition-colors leading-tight mb-4">
+                  <h4 className="text-base sm:text-lg lg:text-2xl font-black text-foreground group-hover/card:text-accent transition-colors leading-tight mb-2 sm:mb-4 line-clamp-2">
                     {post.title}
                   </h4>
                 </Link>
-                <p className="text-secondary text-sm leading-relaxed line-clamp-3 mb-8">
+                <p className="text-secondary text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-3 mb-4 sm:mb-8">
                   {post.excerpt}
                 </p>
                 
-                <div className="mt-auto flex items-center justify-between pt-6 border-t border-border/40">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-[10px] font-black text-accent">
+                <div className="mt-auto flex items-center justify-between pt-4 sm:pt-6 border-t border-border/40">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent/20 flex items-center justify-center text-[9px] sm:text-[10px] font-black text-accent">
                       {post.authorAvatar}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-foreground">{post.author}</span>
-                      <span className="text-[10px] text-muted font-bold uppercase tracking-tighter">{post.authorRole}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-foreground">{post.author}</span>
+                      <span className="text-[9px] sm:text-[10px] text-muted font-bold uppercase tracking-tighter">{post.authorRole}</span>
                     </div>
                   </div>
                   
-                  <span className="text-[10px] font-black text-muted uppercase tracking-widest">{post.readTime} Baca</span>
+                  <span className="text-[9px] sm:text-[10px] font-black text-muted uppercase tracking-widest">{post.readTime} Baca</span>
                 </div>
               </div>
             </motion.div>
@@ -143,7 +144,7 @@ export default function BlogCarousel({ posts }: BlogCarouselProps) {
       </div>
       
       {/* Mobile Swipe Indicator */}
-      <div className="flex md:hidden justify-center gap-1.5 mt-4">
+      <div className="flex md:hidden justify-center gap-1.5 mt-2">
         {posts.map((_, i) => (
           <div key={i} className="w-1.5 h-1.5 rounded-full bg-border" />
         ))}

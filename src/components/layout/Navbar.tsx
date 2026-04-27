@@ -8,9 +8,9 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const navLinks = [
   { label: "Beranda", href: "/" },
-  { label: "Blog", href: "/blog" },
   { label: "Kategori", href: "/category" },
   { label: "Kontribusi", href: "/contribute" },
+  { label: "Laporan", href: "/report" },
 ];
 
 export default function Navbar() {
@@ -27,7 +27,7 @@ export default function Navbar() {
           <div className="flex items-center gap-8 lg:gap-12">
             {/* 1. Logo Section */}
             <Link href="/" className="flex-shrink-0 group flex items-center gap-2" id="navbar-logo">
-              <h1 className="text-xl font-black tracking-tighter text-foreground group-hover:text-accent transition-colors">
+              <h1 className="text-xl font-black tracking-tighter text-foreground">
                 TIMVERSE<span className="text-accent">.</span>
               </h1>
             </Link>
@@ -38,7 +38,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-5 py-2 text-[10px] font-black uppercase tracking-widest text-secondary hover:text-foreground hover:bg-card rounded-full transition-all duration-300"
+                  className="px-5 py-2 text-[10px] font-black uppercase tracking-widest text-secondary rounded-full"
                   aria-label={`Navigasi ke ${link.label}`}
                 >
                   {link.label}
@@ -72,10 +72,10 @@ export default function Navbar() {
               
               <Link 
                 href="/login"
-                className="p-3 rounded-2xl bg-surface border border-border/40 text-secondary hover:text-accent hover:border-accent/40 hover:bg-accent/5 transition-all shadow-sm group"
+                className="p-3 rounded-2xl bg-surface border border-border/40 text-secondary shadow-sm"
                 aria-label="Login Ke Akun"
               >
-                <User size={20} className="group-hover:scale-110 transition-transform" />
+                <User size={20} />
               </Link>
             </div>
 

@@ -15,8 +15,10 @@ import {
   Menu,
   LifeBuoy,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { logout } from "@/app/auth/actions";
 
 interface SidebarLink {
   label: string;
@@ -63,6 +65,8 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Use useEffect to handle hydration safely
@@ -173,13 +177,13 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
           <LifeBuoy size={20} strokeWidth={1.8} className="text-muted" />
           {!collapsed && <span>Bantuan</span>}
         </Link>
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-secondary hover:bg-red-500/10 hover:text-red-500 transition-all group"
+        <button
+          onClick={() => setShowLogoutModal(true)}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-secondary hover:bg-red-500/10 hover:text-red-500 transition-all group"
         >
           <LogOut size={20} strokeWidth={1.8} className="text-muted group-hover:text-red-500" />
           {!collapsed && <span>Keluar</span>}
-        </Link>
+        </button>
       </div>
     </div>
   );
@@ -208,7 +212,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
               className="lg:hidden fixed left-0 top-0 bottom-0 z-[80] w-[280px] border-r border-border"
             >
               <SidebarContent />
@@ -218,7 +222,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
       </AnimatePresence>
 
       <aside
-        className={`hidden lg:block flex-shrink-0 bg-card border-r border-border/60 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block flex-shrink-0 bg-card border-r border-border/60 transition-[width] duration-300 ease-in-out will-change-[width] ${
           collapsed ? "w-[72px]" : "w-64"
         }`}
       >
@@ -226,6 +230,63 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
           <SidebarContent />
         </div>
       </aside>
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+              onClick={() => setShowLogoutModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-sm bg-card border border-border/60 rounded-2xl p-6 shadow-2xl flex flex-col items-center text-center space-y-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-2">
+                <LogOut size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Keluar dari Dashboard?</h3>
+                <p className="text-sm text-secondary mt-1">Anda harus masuk kembali untuk mengakses portal admin.</p>
+              </div>
+              <div className="flex gap-3 w-full mt-4">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold text-foreground bg-surface hover:bg-surface-alt transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    setIsLoggingOut(true);
+                    try {
+                      await logout();
+                    } catch (error) {
+                      setIsLoggingOut(false);
+                      console.error("Logout failed:", error);
+                    }
+                  }}
+                  disabled={isLoggingOut}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Memproses...
+                    </>
+                  ) : (
+                    "Ya, Keluar"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
