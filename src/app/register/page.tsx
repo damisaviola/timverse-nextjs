@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Mail as MailIcon, Lock as LockIcon, ArrowRight as ArrowRightIcon, User as UserIcon, ShieldCheck as ShieldCheckIcon, AlertCircle, Loader2, Phone as PhoneIcon, Eye, EyeOff } from "lucide-react";
+import { Mail as MailIcon, Lock as LockIcon, ArrowRight as ArrowRightIcon, User as UserIcon, ShieldCheck as ShieldCheckIcon, AlertCircle, Loader2, Phone as PhoneIcon, Eye, EyeOff, AtSign } from "lucide-react";
 import { signup } from "@/app/auth/actions";
 
 export default function RegisterPage() {
@@ -55,18 +55,35 @@ export default function RegisterPage() {
         {/* Form */}
         <form action={handleSubmit} className="space-y-4 sm:space-y-5">
           
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Nama Lengkap</label>
-            <div className="relative group">
-               <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
-               <input 
-                 name="name"
-                 type="text"
-                 placeholder="Nama lengkap Anda"
-                 required
-                 disabled={isPending}
-                 className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
-               />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Nama Lengkap</label>
+              <div className="relative group">
+                 <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
+                 <input 
+                   name="name"
+                   type="text"
+                   placeholder="Nama lengkap Anda"
+                   required
+                   disabled={isPending}
+                   className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
+                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Username</label>
+              <div className="relative group">
+                 <AtSign size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
+                 <input 
+                   name="username"
+                   type="text"
+                   placeholder="username_anda"
+                   required
+                   disabled={isPending}
+                   className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
+                 />
+              </div>
             </div>
           </div>
 

@@ -32,6 +32,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log("Middleware trace:", {
+    path: request.nextUrl.pathname,
+    hasUser: !!user,
+    userId: user?.id
+  });
+
   const adminToken = request.cookies.get('admin_token')?.value;
   let isAdminValid = false;
 
@@ -57,6 +63,37 @@ export async function updateSession(request: NextRequest) {
   if (request.nextUrl.pathname === '/admin-login' && isAdminValid) {
     const url = request.nextUrl.clone()
     url.pathname = '/admin'
+    return NextResponse.redirect(url)
+  }
+
+  // 4. Protect regular user dashboard/profile
+  if (request.nextUrl.pathname.startsWith('/profile')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    // Optional: Verifikasi apakah user punya record di tabel profiles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (!profile) {
+      // Jika tidak punya profil (mungkin dia admin atau user setengah jadi), 
+      // kita bisa arahkan ke login atau halaman lain.
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // 5. Redirect logged-in regular users away from login/register
+  if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register') && user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/profile'
     return NextResponse.redirect(url)
   }
 

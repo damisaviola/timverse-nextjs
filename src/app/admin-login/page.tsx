@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { Mail, Lock, ArrowRight, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 import { useActionState } from "react";
-import { login } from "@/app/auth/actions";
+import { adminLogin } from "@/app/auth/actions";
 
 export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(async (prevState: any, formData: FormData) => {
-    return await login(formData);
+    return await adminLogin(formData);
   }, null);
 
   return (

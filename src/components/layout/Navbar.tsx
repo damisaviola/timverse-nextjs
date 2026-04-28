@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Search, User } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
   { label: "Beranda", href: "/" },
@@ -15,6 +16,31 @@ const navLinks = [
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Ambil sesi saat ini ketika komponen dimuat
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      setIsLoading(false);
+    };
+    
+    getUser();
+
+    // Dengarkan perubahan status autentikasi (login/logout)
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   return (
     <header
@@ -70,13 +96,27 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <ThemeToggle />
               
-              <Link 
-                href="/login"
-                className="p-3 rounded-2xl bg-surface border border-border/40 text-secondary shadow-sm"
-                aria-label="Login Ke Akun"
-              >
-                <User size={20} />
-              </Link>
+              {/* Dynamic Auth State */}
+              {!isLoading && (
+                user ? (
+                  <Link 
+                    href="/profile"
+                    className="w-11 h-11 rounded-2xl overflow-hidden border-2 border-border/40 hover:border-accent/60 transition-colors shadow-sm bg-surface flex items-center justify-center"
+                    aria-label="Profil Pengguna"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} alt="Avatar" className="w-full h-full object-cover" />
+                  </Link>
+                ) : (
+                  <Link 
+                    href="/login"
+                    className="p-3 rounded-2xl bg-surface border border-border/40 text-secondary shadow-sm hover:border-accent/40 transition-colors"
+                    aria-label="Login Ke Akun"
+                  >
+                    <User size={20} />
+                  </Link>
+                )
+              )}
             </div>
 
 
