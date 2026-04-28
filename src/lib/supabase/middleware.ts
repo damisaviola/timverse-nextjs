@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { verifyJwt } from '@/lib/jwt'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -30,19 +31,30 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  const adminToken = request.cookies.get('admin_token')?.value;
+  let isAdminValid = false;
+
+  if (adminToken) {
+    const payload = await verifyJwt(adminToken);
+    if (payload) {
+      isAdminValid = true;
+    }
+  }
+
   if (
     request.nextUrl.pathname.startsWith('/admin') &&
     !request.nextUrl.pathname.startsWith('/admin-login')
   ) {
-    if (!user) {
+    if (!isAdminValid) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin-login'
       return NextResponse.redirect(url)
     }
   }
 
-  // 3. Redirect logged-in users away from login page to dashboard
-  if (request.nextUrl.pathname === '/admin-login' && user) {
+  // 3. Redirect logged-in admins away from login page to dashboard
+  if (request.nextUrl.pathname === '/admin-login' && isAdminValid) {
     const url = request.nextUrl.clone()
     url.pathname = '/admin'
     return NextResponse.redirect(url)

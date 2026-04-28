@@ -1,21 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Mail as MailIcon, Lock as LockIcon, ArrowRight as ArrowRightIcon, User as UserIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react";
+import { useActionState, useState } from "react";
+import { Mail as MailIcon, Lock as LockIcon, ArrowRight as ArrowRightIcon, User as UserIcon, ShieldCheck as ShieldCheckIcon, AlertCircle, Loader2, Phone as PhoneIcon, Eye, EyeOff } from "lucide-react";
+import { signup } from "@/app/auth/actions";
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [clientError, setClientError] = useState("");
+
+  const [state, formAction, isPending] = useActionState(async (prevState: any, formData: FormData) => {
+    return await signup(formData);
+  }, null);
+
+  const handleSubmit = (formData: FormData) => {
+    if (password !== confirmPassword) {
+      setClientError("Kata sandi tidak cocok!");
+      return;
+    }
+    setClientError("");
+    formAction(formData);
+  };
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden">
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-4 py-6 sm:py-12 relative overflow-hidden">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute top-[-5%] right-[-5%] w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-accent/15 rounded-full blur-[140px]" />
         <div className="absolute bottom-[-5%] left-[-5%] w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-secondary/15 rounded-full blur-[140px]" />
       </div>
 
-      <div className="w-full max-w-[440px] bg-card/60 backdrop-blur-2xl shadow-2xl border border-border/40 rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 relative z-10">
+      <div className="w-full max-w-[480px] bg-card/60 backdrop-blur-2xl shadow-2xl border border-border/40 rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 md:p-10 relative z-10">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
            <h2 className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground mb-2">
@@ -26,67 +44,130 @@ export default function RegisterPage() {
            </p>
         </div>
 
+        {/* Error Message */}
+        {(clientError || state?.error) && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-2">
+            <AlertCircle size={16} />
+            {clientError || state?.error}
+          </div>
+        )}
+
         {/* Form */}
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        <form action={handleSubmit} className="space-y-4 sm:space-y-5">
+          
           <div className="space-y-2">
             <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Nama Lengkap</label>
             <div className="relative group">
                <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
                <input 
+                 name="name"
                  type="text"
-                 value={formData.name}
-                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                  placeholder="Nama lengkap Anda"
-                 className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm"
+                 required
+                 disabled={isPending}
+                 className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
                />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Email</label>
-            <div className="relative group">
-               <MailIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
-               <input 
-                 type="email"
-                 value={formData.email}
-                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                 placeholder="name@email.com"
-                 className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm"
-               />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Email</label>
+              <div className="relative group">
+                 <MailIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
+                 <input 
+                   name="email"
+                   type="email"
+                   placeholder="name@email.com"
+                   required
+                   disabled={isPending}
+                   className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
+                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">No WhatsApp</label>
+              <div className="relative group">
+                 <PhoneIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
+                 <input 
+                   name="phone"
+                   type="tel"
+                   placeholder="0812xxxx"
+                   required
+                   disabled={isPending}
+                   className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
+                 />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Kata Sandi</label>
-            <div className="relative group">
-               <LockIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
-               <input 
-                 type="password"
-                 value={formData.password}
-                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                 placeholder="Minimal 8 karakter"
-                 className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm"
-               />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Kata Sandi</label>
+              <div className="relative group">
+                 <LockIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
+                 <input 
+                   name="password"
+                   type={showPassword ? "text" : "password"}
+                   placeholder="Min 8 karakter"
+                   required
+                   value={password}
+                   onChange={(e) => setPassword(e.target.value)}
+                   disabled={isPending}
+                   className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
+                 />
+                 <button
+                   type="button"
+                   onClick={() => setShowPassword(!showPassword)}
+                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition-colors"
+                 >
+                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                 </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Konfirmasi Sandi</label>
+              <div className="relative group">
+                 <ShieldCheckIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
+                 <input 
+                   name="confirmPassword"
+                   type={showConfirmPassword ? "text" : "password"}
+                   placeholder="Ulangi sandi"
+                   required
+                   value={confirmPassword}
+                   onChange={(e) => setConfirmPassword(e.target.value)}
+                   disabled={isPending}
+                   className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm disabled:opacity-50"
+                 />
+                 <button
+                   type="button"
+                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition-colors"
+                 >
+                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                 </button>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Konfirmasi Sandi</label>
-            <div className="relative group">
-               <ShieldCheckIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" />
-               <input 
-                 type="password"
-                 value={formData.confirmPassword}
-                 onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                 placeholder="Ulangi kata sandi"
-                 className="w-full bg-surface/50 border border-border/40 rounded-xl py-3 sm:py-3.5 pl-10 sm:pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 transition-all placeholder:text-muted/40 shadow-sm"
-               />
-            </div>
-          </div>
-
-          <button className="w-full flex items-center justify-between bg-foreground text-card px-5 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-accent hover:text-white transition-all group">
-            Daftar Sekarang
-            <ArrowRightIcon size={16} className="group-hover:translate-x-1 transition-transform" />
+          <button 
+            type="submit"
+            disabled={isPending}
+            className="w-full flex items-center justify-between bg-foreground text-card px-5 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-accent hover:text-white transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? (
+              <>
+                Mendaftarkan...
+                <Loader2 size={16} className="animate-spin" />
+              </>
+            ) : (
+              <>
+                Daftar Sekarang
+                <ArrowRightIcon size={16} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
         </form>
 
