@@ -281,6 +281,18 @@ export function getArticlesByCategory(category: string): NewsArticle[] {
   return newsArticles.filter((a) => a.category === category);
 }
 
+export function searchArticles(query: string): NewsArticle[] {
+  const lowerQuery = query.toLowerCase();
+  return newsArticles.filter((a) => 
+    a.title.toLowerCase().includes(lowerQuery) ||
+    a.excerpt.toLowerCase().includes(lowerQuery) ||
+    a.category.toLowerCase().includes(lowerQuery) ||
+    (lowerQuery === "indonesia" && a.content.toLowerCase().includes("indonesia")) ||
+    (lowerQuery === "2026" && a.date.includes("2026")) ||
+    (lowerQuery === "berita") // Return all if tag is "berita"
+  );
+}
+
 export function getPopularArticles(count = 5): NewsArticle[] {
   return [...newsArticles]
     .sort((a, b) => b.views - a.views)

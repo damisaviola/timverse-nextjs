@@ -7,19 +7,107 @@ import Link from "next/link";
 import { newsArticles } from "@/data/mockNews";
 import NewsCard from "@/components/news/NewsCard";
 
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { logout } from "@/app/auth/actions";
+import { useRouter } from "next/navigation";
+import LogoutModal from "@/components/auth/LogoutModal";
+
 export default function UserHomePage() {
-  // Mock Data for Logged In User
-  const user = {
-    name: "Alex Pratama",
-    email: "alex.pratama@example.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-    joined: "Bergabung sejak Jan 2026"
+  const [profile, setProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        
+        if (data) {
+          setProfile({
+            ...data,
+            email: session.user.email,
+            avatar: data.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.username || session.user.id}`,
+            joined: new Date(data.updated_at).toLocaleDateString("id-ID", {
+              year: "numeric",
+              month: "short",
+            })
+          });
+        }
+      }
+      setIsLoading(false);
+    };
+
+    fetchProfile();
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.refresh();
   };
 
-  // Mock data for liked and commented news
+  // Mock data for engagements (can be replaced with real data later)
   const likedNews = newsArticles.slice(0, 3);
   const commentedNews = [newsArticles[3], newsArticles[5]];
   const sharedNews = [newsArticles[1], newsArticles[7], newsArticles[9]];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <section className="relative pt-12 pb-8 sm:pt-20 sm:pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 bg-card/50 p-6 sm:p-8 rounded-3xl border border-border">
+            {/* Avatar Skeleton */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-surface animate-pulse" />
+            
+            {/* Info Skeleton */}
+            <div className="flex-1 w-full space-y-4 text-center md:text-left mt-2">
+              <div className="h-8 bg-surface rounded-xl w-3/4 mx-auto md:mx-0 animate-pulse" />
+              <div className="h-4 bg-surface rounded-xl w-1/2 mx-auto md:mx-0 animate-pulse" />
+              <div className="h-3 bg-surface rounded-xl w-1/3 mx-auto md:mx-0 animate-pulse" />
+              
+              {/* Stats Skeleton */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 mt-6 pt-4 border-t border-border/40">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="space-y-2">
+                    <div className="h-6 sm:h-8 w-12 bg-surface rounded-xl mx-auto md:mx-0 animate-pulse" />
+                    <div className="h-3 w-16 bg-surface rounded-xl animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions Skeleton */}
+            <div className="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto mt-4 md:mt-0">
+              <div className="h-10 w-full md:w-32 bg-surface rounded-xl animate-pulse" />
+              <div className="h-10 w-full md:w-32 bg-surface rounded-xl animate-pulse" />
+            </div>
+          </div>
+        </section>
+
+        {/* Content Skeleton */}
+        <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12 sm:space-y-16">
+          <div className="space-y-6">
+            <div className="h-8 w-48 bg-surface rounded-xl animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-64 bg-surface rounded-3xl animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (!profile) return null; // Middleware handles redirection, but good to have fallback
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -38,8 +126,8 @@ export default function UserHomePage() {
           <div className="relative group">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-background shadow-xl bg-surface">
               <img 
-                src={user.avatar} 
-                alt={user.name} 
+                src={profile.avatar} 
+                alt={profile.full_name || profile.username} 
                 className="w-full h-full object-cover"
               />
             </div>
@@ -51,10 +139,10 @@ export default function UserHomePage() {
           {/* User Info */}
           <div className="flex-1 w-full text-center md:text-left space-y-2">
             <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-              Selamat datang, {user.name}!
+              Selamat datang, {profile.full_name || profile.username}!
             </h1>
-            <p className="text-secondary text-sm font-medium">{user.email}</p>
-            <p className="text-muted text-xs">{user.joined}</p>
+            <p className="text-secondary text-sm font-medium">{profile.email}</p>
+            <p className="text-muted text-xs">Bergabung sejak {profile.joined}</p>
 
             {/* Stats */}
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 mt-6 pt-4 border-t border-border/40">
@@ -84,12 +172,21 @@ export default function UserHomePage() {
             <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface/80 text-foreground border border-border px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm">
               <Settings size={16} /> Pengaturan
             </button>
-            <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm">
+            <button 
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm"
+            >
               <LogOut size={16} /> Keluar
             </button>
           </div>
         </motion.div>
       </section>
+
+      {/* Logout Modal */}
+      <LogoutModal 
+        isOpen={isLogoutModalOpen} 
+        onClose={() => setIsLogoutModalOpen(false)} 
+      />
 
       {/* Content Sections */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12 sm:space-y-16">

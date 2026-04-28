@@ -52,11 +52,11 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${outfit.variable} h-full`}
+      className={outfit.variable}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col antialiased">
+      <body className={`${outfit.className} min-h-full flex flex-col antialiased`}>
         <ThemeProvider>
           <LayoutShell>{children}</LayoutShell>
         </ThemeProvider>

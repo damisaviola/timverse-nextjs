@@ -176,13 +176,24 @@ export async function signup(formData: FormData) {
 
 /**
  * Menghancurkan sesi pengguna dan menghapus cookie otorisasi.
+ * Menangani logout baik untuk Admin maupun Pengguna biasa.
  */
 export async function logout() {
   const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // Tentukan apakah ini admin atau user biasa untuk redirect yang tepat
+  const isAdmin = (await cookies()).get("admin_token")?.value;
+
   await supabase.auth.signOut();
 
   const cookieStore = await cookies();
   cookieStore.delete("admin_token");
 
-  return redirect("/admin-login");
+  // Jika sebelumnya admin, balikkan ke login admin, jika user biasa balikkan ke halaman login
+  if (isAdmin) {
+    return redirect("/admin-login");
+  }
+  
+  return redirect("/login");
 }

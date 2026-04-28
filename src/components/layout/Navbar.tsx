@@ -16,31 +16,56 @@ const navLinks = [
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
-    // Ambil sesi saat ini ketika komponen dimuat
-    const getUser = async () => {
+    const fetchSessionAndProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+      
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("avatar_url, username")
+          .eq("id", session.user.id)
+          .single();
+        
+        setProfile({
+          id: session.user.id,
+          avatar: profileData?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData?.username || session.user.id}`
+        });
+      } else {
+        setProfile(null);
+      }
       setIsLoading(false);
     };
     
-    getUser();
+    fetchSessionAndProfile();
 
-    // Dengarkan perubahan status autentikasi (login/logout)
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
+      async (event, session) => {
+        if (session?.user) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("avatar_url, username")
+            .eq("id", session.user.id)
+            .single();
+          
+          setProfile({
+            id: session.user.id,
+            avatar: profileData?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData?.username || session.user.id}`
+          });
+        } else {
+          setProfile(null);
+        }
       }
     );
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [supabase]);
 
   return (
     <header
@@ -98,14 +123,14 @@ export default function Navbar() {
               
               {/* Dynamic Auth State */}
               {!isLoading && (
-                user ? (
+                profile ? (
                   <Link 
                     href="/profile"
                     className="w-11 h-11 rounded-2xl overflow-hidden border-2 border-border/40 hover:border-accent/60 transition-colors shadow-sm bg-surface flex items-center justify-center"
                     aria-label="Profil Pengguna"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   </Link>
                 ) : (
                   <Link 

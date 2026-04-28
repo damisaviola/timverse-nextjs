@@ -131,15 +131,16 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.4 }}
-        className="flex flex-wrap gap-2 mt-8"
+        className="flex flex-wrap items-center gap-2.5 mt-8"
       >
         {["Berita", article.category, "Indonesia", "2026"].map((tag) => (
-          <span
+          <Link
             key={tag}
-            className="text-xs bg-surface text-secondary px-3 py-1.5 rounded-full border border-border hover:border-accent/30 hover:text-accent transition-colors cursor-pointer"
+            href={`/category?tag=${encodeURIComponent(tag)}`}
+            className="inline-flex items-center justify-center text-xs font-bold bg-surface/80 backdrop-blur-sm text-secondary px-4 py-2 rounded-full border border-border/60 hover:border-accent/40 hover:bg-accent/5 hover:text-accent transition-all duration-300 shadow-sm hover:shadow-md"
           >
             #{tag}
-          </span>
+          </Link>
         ))}
       </motion.div>
 
