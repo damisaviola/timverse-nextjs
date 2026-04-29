@@ -18,7 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { logout } from "@/app/auth/actions";
+import { adminLogout } from "@/app/auth/actions";
 
 interface SidebarLink {
   label: string;
@@ -264,7 +264,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                   onClick={async () => {
                     setIsLoggingOut(true);
                     try {
-                      await logout();
+                      await adminLogout();
                     } catch (error) {
                       setIsLoggingOut(false);
                       console.error("Logout failed:", error);

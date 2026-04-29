@@ -6,6 +6,7 @@ import { Search, User } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { ROUTES } from "@/lib/constants/routes";
 
 const navLinks = [
   { label: "Beranda", href: "/" },
@@ -125,7 +126,7 @@ export default function Navbar() {
               {!isLoading && (
                 profile ? (
                   <Link 
-                    href="/profile"
+                    href={ROUTES.PROFILE}
                     className="w-11 h-11 rounded-2xl overflow-hidden border-2 border-border/40 hover:border-accent/60 transition-colors shadow-sm bg-surface flex items-center justify-center"
                     aria-label="Profil Pengguna"
                   >
@@ -134,7 +135,7 @@ export default function Navbar() {
                   </Link>
                 ) : (
                   <Link 
-                    href="/login"
+                    href={ROUTES.LOGIN}
                     className="p-3 rounded-2xl bg-surface border border-border/40 text-secondary shadow-sm hover:border-accent/40 transition-colors"
                     aria-label="Login Ke Akun"
                   >

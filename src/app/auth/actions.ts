@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { signJwt } from "@/lib/jwt";
 import { cookies } from "next/headers";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 
 /**
  * Menerjemahkan pesan error teknis menjadi bahasa yang ramah pengguna.
@@ -38,14 +39,20 @@ function getFriendlyErrorMessage(error: any): string {
 
 /**
  * Melakukan proses login khusus untuk Administrator.
- * Mengecek kredensial dan memverifikasi peran di tabel 'admins'.
+ * Mengecek kredensial secara terisolasi tanpa menimpa sesi User yang sedang aktif.
  */
 export async function adminLogin(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const supabase = await createClient();
+  
+  // Gunakan client dasar (non-SSR) agar proses autentikasi admin INI TIDAK MENULIS/MENIMPA
+  // cookie session milik User biasa. Ini menciptakan isolasi total antara Admin & User.
+  const supabaseIsolated = createSupabaseJsClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabaseIsolated.auth.signInWithPassword({
     email,
     password,
   });
@@ -56,14 +63,14 @@ export async function adminLogin(formData: FormData) {
 
   if (data.user) {
     // Verifikasi peran admin di database
-    const { data: adminData, error: adminError } = await supabase
+    const { data: adminData, error: adminError } = await supabaseIsolated
       .from("admins")
       .select("*")
       .eq("id", data.user.id)
       .single();
 
     if (adminError || !adminData) {
-      await supabase.auth.signOut();
+      await supabaseIsolated.auth.signOut();
       return { error: "Akses ditolak. Akun Anda tidak terdaftar sebagai administrator." };
     }
 
@@ -169,31 +176,34 @@ export async function signup(formData: FormData) {
       console.error("Critical: Profile sync failed:", profileError);
       return { error: "Berhasil mendaftar, namun gagal menyiapkan profil: " + getFriendlyErrorMessage(profileError) };
     }
+
+    // Force sign out immediately after signup to prevent automatic login
+    // This ensures the user is redirected to the login page to manually authenticate
+    await supabase.auth.signOut();
   }
 
   return redirect("/login?success=true");
 }
 
 /**
- * Menghancurkan sesi pengguna dan menghapus cookie otorisasi.
- * Menangani logout baik untuk Admin maupun Pengguna biasa.
+ * Menghancurkan sesi pengguna (User Biasa).
+ * Mengarahkannya ke beranda, tidak menyentuh sesi Admin jika ada.
  */
-export async function logout() {
+export async function userLogout() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  // Tentukan apakah ini admin atau user biasa untuk redirect yang tepat
-  const isAdmin = (await cookies()).get("admin_token")?.value;
-
   await supabase.auth.signOut();
+  
+  // Mengarahkan user ke halaman beranda (home) setelah berhasil logout
+  return redirect("/");
+}
 
+/**
+ * Menghancurkan sesi Admin secara terpisah.
+ * Tidak menyentuh sesi User jika ada.
+ */
+export async function adminLogout() {
   const cookieStore = await cookies();
   cookieStore.delete("admin_token");
 
-  // Jika sebelumnya admin, balikkan ke login admin, jika user biasa balikkan ke halaman login
-  if (isAdmin) {
-    return redirect("/admin-login");
-  }
-  
-  return redirect("/login");
+  return redirect("/admin-login");
 }

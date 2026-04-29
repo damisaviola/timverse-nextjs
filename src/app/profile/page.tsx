@@ -9,7 +9,7 @@ import NewsCard from "@/components/news/NewsCard";
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { logout } from "@/app/auth/actions";
+import { userLogout } from "@/app/auth/actions";
 import { useRouter } from "next/navigation";
 import LogoutModal from "@/components/auth/LogoutModal";
 
@@ -48,11 +48,6 @@ export default function UserHomePage() {
 
     fetchProfile();
   }, [supabase]);
-
-  const handleLogout = async () => {
-    await logout();
-    router.refresh();
-  };
 
   // Mock data for engagements (can be replaced with real data later)
   const likedNews = newsArticles.slice(0, 3);

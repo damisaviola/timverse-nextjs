@@ -14,9 +14,66 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+
 export default function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = use(params);
-  const article = getArticleBySlug(slug);
+  const [article, setArticle] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        setIsLoading(true);
+        // Try to fetch from Supabase first
+        const { data, error } = await supabase
+          .from("news")
+          .select("*")
+          .eq("slug", slug)
+          .single();
+
+        if (data) {
+          setArticle({
+            ...data,
+            id: data.id,
+            title: data.title,
+            excerpt: data.excerpt,
+            content: data.content,
+            category: data.category,
+            author: "Admin", // Fallback for now or fetch profile
+            authorAvatar: "AD",
+            date: data.created_at,
+            readTime: "5 menit",
+            imageGradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            thumbnail_url: data.thumbnail_url
+          });
+        } else {
+          // Fallback to mock
+          const mock = getArticleBySlug(slug);
+          if (mock) setArticle(mock);
+        }
+      } catch (err) {
+        console.error("Fetch article error:", err);
+        const mock = getArticleBySlug(slug);
+        if (mock) setArticle(mock);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchArticle();
+  }, [slug, supabase]);
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-32 text-center">
+        <div className="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-secondary font-bold">Memuat Artikel...</p>
+      </div>
+    );
+  }
 
   if (!article) {
     notFound();
@@ -105,9 +162,22 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         className="mt-8"
       >
         <div
-          className="aspect-[16/9] w-full rounded-2xl overflow-hidden"
-          style={{ background: article.imageGradient }}
-        />
+          className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-surface-alt"
+          style={{ 
+            background: article.thumbnail_url ? 'none' : article.imageGradient,
+            backgroundImage: article.thumbnail_url ? `url(${article.thumbnail_url})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
+          {article.thumbnail_url && (
+            <img 
+              src={article.thumbnail_url} 
+              alt={article.title} 
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            />
+          )}
+        </div>
       </motion.div>
 
       {/* Article Body */}
@@ -148,7 +218,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
       <RelatedNews articles={relatedArticles} />
 
       {/* Comments */}
-      <CommentSection />
+      <CommentSection articleId={article.id} />
     </article>
   );
 }

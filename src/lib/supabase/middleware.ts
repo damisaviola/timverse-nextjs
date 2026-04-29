@@ -1,101 +1,86 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { verifyJwt } from '@/lib/jwt'
+import { ROUTES } from '@/lib/constants/routes'
 
+/**
+ * Keamanan & Manajemen Sesi Global (Middleware)
+ * Optimasi untuk mencegah Infinite Redirect Loop.
+ */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  const { pathname } = request.nextUrl
+  let response = NextResponse.next({ request })
 
+  // 1. Inisialisasi Supabase Client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            response.cookies.set(name, value, options)
           )
         },
       },
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // 2. Identifikasi Rute
+  const isAdminArea = pathname.startsWith('/admin') && pathname !== ROUTES.ADMIN.LOGIN
+  const isAdminLoginPage = pathname === ROUTES.ADMIN.LOGIN
+  const isUserProfilePage = pathname.startsWith(ROUTES.PROFILE)
+  const isUserAuthPage = pathname === ROUTES.LOGIN || pathname === ROUTES.REGISTER
 
-  console.log("Middleware trace:", {
-    path: request.nextUrl.pathname,
-    hasUser: !!user,
-    userId: user?.id
-  });
+  // 3. Validasi Sesi (Minimalis)
+  // Ambil user dan token secara paralel
+  const [userResult, adminTokenObj] = await Promise.all([
+    supabase.auth.getUser().catch(() => ({ data: { user: null } })),
+    request.cookies.get('admin_token')
+  ])
 
-  const adminToken = request.cookies.get('admin_token')?.value;
-  let isAdminValid = false;
+  const user = userResult.data.user
+  const adminToken = adminTokenObj?.value
 
+  let isAdminValid = false
   if (adminToken) {
-    const payload = await verifyJwt(adminToken);
-    if (payload) {
-      isAdminValid = true;
+    try {
+      const payload = await verifyJwt(adminToken)
+      isAdminValid = !!(payload && payload.role === 'admin')
+    } catch {
+      isAdminValid = false
+      response.cookies.delete('admin_token')
     }
   }
 
-  if (
-    request.nextUrl.pathname.startsWith('/admin') &&
-    !request.nextUrl.pathname.startsWith('/admin-login')
-  ) {
-    if (!isAdminValid) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin-login'
-      return NextResponse.redirect(url)
-    }
+  // 4. LOGIKA PENGALIHAN (REDIRECT)
+
+  // Kasus A: Akses Admin Area tanpa token yang sah
+  if (isAdminArea && !isAdminValid) {
+    return NextResponse.redirect(new URL(ROUTES.ADMIN.LOGIN, request.url))
   }
 
-  // 3. Redirect logged-in admins away from login page to dashboard
-  if (request.nextUrl.pathname === '/admin-login' && isAdminValid) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/admin'
-    return NextResponse.redirect(url)
+  // Kasus B: Akses Admin Login padahal sudah login admin
+  if (isAdminLoginPage && isAdminValid) {
+    return NextResponse.redirect(new URL(ROUTES.ADMIN.DASHBOARD, request.url))
   }
 
-  // 4. Protect regular user dashboard/profile
-  if (request.nextUrl.pathname.startsWith('/profile')) {
+  // Kasus C: Proteksi Profil User
+  if (isUserProfilePage) {
     if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
+      return NextResponse.redirect(new URL(ROUTES.LOGIN, request.url))
     }
-
-    // Optional: Verifikasi apakah user punya record di tabel profiles
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (!profile) {
-      // Jika tidak punya profil (mungkin dia admin atau user setengah jadi), 
-      // kita bisa arahkan ke login atau halaman lain.
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
+    // Admin dilarang masuk profil user biasa jika mereka tidak punya profil
+    // (Bisa dikembangkan lebih lanjut di sini jika perlu)
   }
 
-  // 5. Redirect logged-in regular users away from login/register
-  if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register') && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/profile'
-    return NextResponse.redirect(url)
+  // Kasus D: Pengguna login dilarang balik ke halaman Login/Register user
+  if (isUserAuthPage && user && !isAdminValid) {
+    return NextResponse.redirect(new URL(ROUTES.PROFILE, request.url))
   }
 
-  return supabaseResponse
+  return response
 }

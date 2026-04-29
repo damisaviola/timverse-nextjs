@@ -6,7 +6,9 @@ import {
   Tag, Send, Save, ImageIcon, ChevronRight, X, Plus, UploadCloud
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { categories } from "@/data/mockNews";
+import { createNews } from "@/app/admin/news/actions";
 
 // Dynamically import TinyMCE with SSR disabled
 const TinyEditor = dynamic(() => import("./TinyEditor"), { 
@@ -22,6 +24,7 @@ const TinyEditor = dynamic(() => import("./TinyEditor"), {
 });
 
 export default function NewsForm() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -30,6 +33,8 @@ export default function NewsForm() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,10 +54,35 @@ export default function NewsForm() {
     }
   };
 
-  const handlePublish = (e: React.FormEvent) => {
+  const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Publishing:", { title, category, tags, excerpt, content, thumbnail: file });
-    alert("Berita berhasil dipublish! Data lengkap telah dicatat di konsol.");
+    setIsPending(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("category", category);
+    formData.append("excerpt", excerpt);
+    formData.append("content", content);
+    formData.append("tags", JSON.stringify(tags));
+    if (file) {
+      formData.append("thumbnail", file);
+    }
+
+    try {
+      const result = await createNews(formData);
+      if (result?.error) {
+        setError(result.error);
+        setIsPending(false);
+      } else {
+        alert("Berita berhasil diterbitkan!");
+        router.push("/admin");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan teknis. Silakan coba lagi.");
+      setIsPending(false);
+    }
   };
 
   const handleAddTag = (e?: React.KeyboardEvent) => {
@@ -267,17 +297,33 @@ export default function NewsForm() {
 
           {/* Action Card */}
           <div className="bg-card border border-border/40 rounded-xl p-6 shadow-sm space-y-3">
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium mb-2">
+                {error}
+              </div>
+            )}
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
+              disabled={isPending}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send size={16} />
-              Terbitkan Berita
+              {isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  Terbitkan Berita
+                </>
+              )}
             </button>
             <button
               type="button"
+              disabled={isPending}
               onClick={handleSaveDraft}
-              className="w-full flex items-center justify-center gap-2 bg-transparent border border-border/60 px-4 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-surface transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-transparent border border-border/60 px-4 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50"
             >
               <Save size={16} />
               Simpan Draft

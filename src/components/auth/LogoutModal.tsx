@@ -2,8 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, X, AlertTriangle } from "lucide-react";
-import { logout } from "@/app/auth/actions";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface LogoutModalProps {
   isOpen: boolean;
@@ -12,11 +12,16 @@ interface LogoutModalProps {
 
 export default function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
   const [isPending, setIsPending] = useState(false);
+  const supabase = createClient();
 
   const handleLogout = async () => {
     setIsPending(true);
-    await logout();
-    // Redirect ditangani oleh server action
+    // Jalankan sign out secara utuh di client (karena Supabase SSR client otomatis membersihkan cookie browser)
+    // Ini menghilangkan avatar seketika dan mencegah error redirect dari Server Action.
+    await supabase.auth.signOut();
+    
+    // Redirect secara manual ke beranda setelah cookie terhapus
+    window.location.href = "/";
   };
 
   return (
