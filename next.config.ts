@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   // Mengizinkan akses HMR dari IP jaringan lokal untuk pengembangan mobile/tablet
   allowedDevOrigins: ['192.168.1.3', '192.168.1.6'], 
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb', // Default: 1mb
+    },
+  },
 };
 
 export default nextConfig;

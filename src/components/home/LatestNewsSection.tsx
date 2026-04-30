@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock, ArrowRight } from "lucide-react";
-import { getLatestArticles } from "@/data/mockNews";
+import type { NewsArticle } from "@/data/mockNews";
 import { formatDate } from "@/lib/utils";
 import NewsCard from "@/components/news/NewsCard";
 
-export default function LatestNewsSection() {
-  const latestArticles = getLatestArticles(6);
+interface LatestNewsSectionProps {
+  latestArticles: NewsArticle[];
+}
+
+export default function LatestNewsSection({ latestArticles }: LatestNewsSectionProps) {
+  if (!latestArticles || latestArticles.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8" id="latest-news">

@@ -10,6 +10,8 @@ export interface NewsArticle {
   date: string;
   readTime: string;
   imageGradient: string;
+  thumbnail_url?: string;
+  created_at?: string;
   featured: boolean;
   views: number;
 }

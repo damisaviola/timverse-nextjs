@@ -35,6 +35,7 @@ export default function NewsForm() {
   const [tagInput, setTagInput] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,9 +76,13 @@ export default function NewsForm() {
         setError(result.error);
         setIsPending(false);
       } else {
-        alert("Berita berhasil diterbitkan!");
-        router.push("/admin");
-        router.refresh();
+        setSuccess(true);
+        setIsPending(false);
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          router.push("/admin");
+          router.refresh();
+        }, 2000);
       }
     } catch (err) {
       setError("Terjadi kesalahan teknis. Silakan coba lagi.");
@@ -104,6 +109,49 @@ export default function NewsForm() {
     alert("Draft tersimpan! (Demo)");
   };
 
+
+  if (success) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-lg mx-auto text-center py-16"
+      >
+        <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+          <motion.svg
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-10 h-10 text-emerald-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <motion.path d="M5 13l4 4L19 7" />
+          </motion.svg>
+        </div>
+        <h2 className="text-2xl font-black text-foreground mb-2">Berita Berhasil Diterbitkan!</h2>
+        <p className="text-sm text-secondary mb-6">Artikel Anda sudah tayang dan bisa diakses oleh pembaca.</p>
+        <div className="flex items-center justify-center gap-3">
+          <a
+            href="/admin"
+            className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/20"
+          >
+            Kembali ke Dashboard
+          </a>
+          <a
+            href="/admin/news/create"
+            className="px-6 py-2.5 bg-card border border-border/60 text-foreground rounded-xl text-sm font-medium hover:bg-surface-alt transition-colors"
+          >
+            Tulis Lagi
+          </a>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.form

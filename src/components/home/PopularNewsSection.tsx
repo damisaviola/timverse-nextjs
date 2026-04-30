@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Flame, Eye, Clock } from "lucide-react";
-import { getPopularArticles, formatViews } from "@/data/mockNews";
+import type { NewsArticle } from "@/data/mockNews";
+import { formatViews } from "@/data/mockNews"; // Keep formatViews if needed, or inline it
 import { formatDate } from "@/lib/utils";
 
-export default function PopularNewsSection() {
-  const popularArticles = getPopularArticles(5);
+interface PopularNewsSectionProps {
+  popularArticles: NewsArticle[];
+}
+
+export default function PopularNewsSection({ popularArticles }: PopularNewsSectionProps) {
+  if (!popularArticles || popularArticles.length === 0) return null;
   const [topArticle, ...restArticles] = popularArticles;
 
   return (
@@ -37,10 +42,15 @@ export default function PopularNewsSection() {
           <Link href={`/article/${topArticle.slug}`} className="block group h-full" id={`popular-top-${topArticle.slug}`}>
             <div className="relative overflow-hidden rounded-2xl h-full min-h-[320px] sm:min-h-[380px]">
               {/* Background gradient */}
-              <div
-                className="absolute inset-0"
-                style={{ background: topArticle.imageGradient }}
-              />
+              <div className="absolute inset-0">
+                <div
+                  className="absolute inset-0"
+                  style={{ background: topArticle.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+                />
+                {topArticle.thumbnail_url && (
+                  <img src={topArticle.thumbnail_url} alt={topArticle.title} className="absolute inset-0 w-full h-full object-cover" />
+                )}
+              </div>
               {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
@@ -92,10 +102,15 @@ export default function PopularNewsSection() {
                   </div>
 
                   {/* Thumbnail */}
-                  <div
-                    className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden"
-                    style={{ background: article.imageGradient }}
-                  />
+                  <div className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden">
+                    <div
+                      className="absolute inset-0"
+                      style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+                    />
+                    {article.thumbnail_url && (
+                      <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                  </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">

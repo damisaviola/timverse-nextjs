@@ -1,10 +1,13 @@
 "use client";
 
-import { breakingNews } from "@/data/mockNews";
+interface BreakingNewsTickerProps {
+  headlines: string[];
+}
 
-export default function BreakingNewsTicker() {
+export default function BreakingNewsTicker({ headlines }: BreakingNewsTickerProps) {
+  if (!headlines || headlines.length === 0) return null;
   // Duplicate for seamless loop
-  const items = [...breakingNews, ...breakingNews];
+  const items = [...headlines, ...headlines];
 
   return (
     <div

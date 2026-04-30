@@ -6,7 +6,33 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-utils";
 
 /**
+ * Mengambil semua berita dari database Supabase.
+ */
+export async function fetchNews() {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("news")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Fetch News Error:", error);
+      return { error: "Gagal memuat berita: " + error.message, data: [] };
+    }
+
+    return { data: data || [] };
+  } catch (error: any) {
+    console.error("Fetch News Exception:", error);
+    return { error: error.message || "Terjadi kesalahan sistem.", data: [] };
+  }
+}
+
+/**
  * Membuat berita baru di database Supabase.
+ * Menyesuaikan dengan skema tabel user yang menggunakan 'author' (text)
+ * dan menambahkan dukungan untuk thumbnail_url serta tags.
  */
 export async function createNews(formData: FormData) {
   try {
@@ -52,7 +78,13 @@ export async function createNews(formData: FormData) {
       thumbnailUrl = publicUrlData.publicUrl;
     }
 
-    // 2. Simpan ke database
+    // Hitung estimasi waktu baca (sederhana)
+    const wordsPerMinute = 200;
+    const noHtmlContent = content.replace(/<[^>]*>/g, '');
+    const wordCount = noHtmlContent.split(/\s+/).length;
+    const readTimeMinutes = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+
+    // 2. Simpan ke database (Sesuai skema user)
     const { error: dbError } = await supabase
       .from("news")
       .insert({
@@ -61,11 +93,14 @@ export async function createNews(formData: FormData) {
         excerpt,
         content,
         category,
-        thumbnail_url: thumbnailUrl,
-        author_id: admin.id,
-        tags,
+        author: admin.name || "Admin", // Menggunakan kolom 'author' (text) sesuai skema user
+        author_avatar: "AD",
+        thumbnail_url: thumbnailUrl, // Kolom tambahan (perlu dijalankan di SQL)
+        tags: tags, // Kolom tambahan (perlu dijalankan di SQL)
+        read_time: `${readTimeMinutes} menit`,
         featured: false,
-        views: 0
+        views: 0,
+        date: new Date().toISOString().split('T')[0] // Format YYYY-MM-DD
       });
 
     if (dbError) {
@@ -80,6 +115,59 @@ export async function createNews(formData: FormData) {
     return { success: true, slug };
   } catch (error: any) {
     console.error("Create News Exception:", error);
+    return { error: error.message || "Terjadi kesalahan sistem." };
+  }
+}
+
+/**
+ * Menghapus berita dari database Supabase.
+ */
+export async function deleteNews(newsId: string) {
+  try {
+    await requireAdmin();
+
+    const supabase = await createClient();
+
+    // 1. Ambil data berita untuk menghapus file dari storage
+    const { data: newsData } = await supabase
+      .from("news")
+      .select("thumbnail_url")
+      .eq("id", newsId)
+      .single();
+
+    // 2. Hapus thumbnail dari storage jika ada
+    if (newsData?.thumbnail_url) {
+      try {
+        const url = new URL(newsData.thumbnail_url);
+        const pathParts = url.pathname.split("/storage/v1/object/public/news-thumbnails/");
+        if (pathParts[1]) {
+          await supabase.storage
+            .from("news-thumbnails")
+            .remove([pathParts[1]]);
+        }
+      } catch (storageErr) {
+        console.warn("Failed to delete thumbnail from storage:", storageErr);
+      }
+    }
+
+    // 3. Hapus dari database
+    const { error } = await supabase
+      .from("news")
+      .delete()
+      .eq("id", newsId);
+
+    if (error) {
+      console.error("Delete News Error:", error);
+      return { error: "Gagal menghapus berita: " + error.message };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/category");
+    revalidatePath("/admin");
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete News Exception:", error);
     return { error: error.message || "Terjadi kesalahan sistem." };
   }
 }

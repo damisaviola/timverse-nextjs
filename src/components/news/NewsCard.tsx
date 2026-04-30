@@ -23,10 +23,15 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
         <Link href={`/article/${article.slug}`} className="block group" id={`news-card-${article.slug}`}>
           <div className="flex gap-4 bg-card rounded-2xl p-3 border border-border hover:shadow-md hover:border-accent/20 transition-all duration-300">
             {/* Small Thumbnail */}
-            <div
-              className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden"
-              style={{ background: article.imageGradient }}
-            />
+            <div className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden">
+              <div
+                className="absolute inset-0"
+                style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+              />
+              {article.thumbnail_url && (
+                <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+              )}
+            </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -57,10 +62,15 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
         <Link href={`/article/${article.slug}`} className="block group" id={`news-card-${article.slug}`}>
           <div className="bg-card rounded-2xl overflow-hidden border border-border hover:shadow-md hover:border-accent/20 transition-all duration-300">
             {/* Thumbnail */}
-            <div
-              className="aspect-[16/10] w-full"
-              style={{ background: article.imageGradient }}
-            />
+            <div className="relative aspect-[16/10] w-full">
+              <div
+                className="absolute inset-0"
+                style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+              />
+              {article.thumbnail_url && (
+                <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+              )}
+            </div>
 
             {/* Content */}
             <div className="p-4">
@@ -87,33 +97,42 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.06 }}
+      className="h-full"
     >
-      <Link href={`/article/${article.slug}`} className="block group" id={`news-card-${article.slug}`}>
-        <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-lg hover:border-accent/20 hover:-translate-y-0.5 transition-all duration-300">
+      <Link href={`/article/${article.slug}`} className="block group h-full" id={`news-card-${article.slug}`}>
+        <div className="h-full flex flex-col bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-lg hover:border-accent/20 hover:-translate-y-0.5 transition-all duration-300">
           {/* Image */}
-          <div className="relative overflow-hidden">
-            <div
-              className="aspect-[16/9] w-full group-hover:scale-105 transition-transform duration-500"
-              style={{ background: article.imageGradient }}
-            />
+          <div className="relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+            <div className="relative aspect-[16/9] w-full">
+              <div
+                className="absolute inset-0"
+                style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+              />
+              {article.thumbnail_url && (
+                <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+              )}
+            </div>
             <div className="absolute top-3 left-3">
-              <span className="inline-block bg-white/90 dark:bg-black/60 backdrop-blur-sm text-foreground text-[10px] font-semibold px-2.5 py-1 rounded-full">
+              <span className="inline-block bg-card/90 backdrop-blur-sm text-accent text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                 {article.category}
               </span>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-5">
-            <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors duration-200 leading-snug">
+          <div className="flex-1 flex flex-col p-5">
+            <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+              {article.category}
+            </span>
+            <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors duration-200 leading-snug mt-1.5">
               {article.title}
             </h3>
             <p className="mt-2 text-sm text-secondary line-clamp-2 leading-relaxed">
               {article.excerpt}
             </p>
 
-            {/* Meta */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-border-light">
+            {/* Meta — pushed to bottom */}
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-border-light">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-[10px] font-bold text-accent">
                   {article.authorAvatar}

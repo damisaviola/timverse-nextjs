@@ -116,9 +116,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
           {/* Main Article Text */}
           <main className="lg:col-span-10 xl:col-span-9">
              <div 
-               className="prose-blog text-lg md:text-xl text-secondary leading-[1.8] space-y-8
-               [&_p]:leading-[1.8]
-               [&_p]:mb-8
+               className="prose prose-xl max-w-none
                [&_strong]:text-foreground [&_strong]:font-bold
                "
                dangerouslySetInnerHTML={{ __html: post.content }}

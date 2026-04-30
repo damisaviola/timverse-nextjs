@@ -1,12 +1,16 @@
 "use client";
 
-import { newsArticles } from "@/data/mockNews";
+import type { NewsArticle } from "@/data/mockNews";
 import NewsCard from "@/components/news/NewsCard";
 import { TrendingUp } from "lucide-react";
 
-export default function BentoGrid() {
+interface BentoGridProps {
+  articles: NewsArticle[];
+}
+
+export default function BentoGrid({ articles: rawArticles }: BentoGridProps) {
   // Skip the first article (used in Hero)
-  const articles = newsArticles.slice(1);
+  const articles = rawArticles.length > 1 ? rawArticles.slice(1) : rawArticles;
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8" id="bento-grid">

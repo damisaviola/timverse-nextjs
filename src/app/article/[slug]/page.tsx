@@ -1,78 +1,54 @@
-"use client";
-
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, Clock, User, Calendar, Share2, Bookmark } from "lucide-react";
+import { ArrowLeft, Clock, Calendar } from "lucide-react";
 import { getArticleBySlug, getRelatedArticles } from "@/data/mockNews";
 import { formatDate } from "@/lib/utils";
 import CommentSection from "@/components/news/CommentSection";
 import RelatedNews from "@/components/news/RelatedNews";
-import { use } from "react";
+import InteractionButtons from "@/components/news/InteractionButtons";
+import ReadingToolbar from "@/components/news/ReadingToolbar";
+import { createClient } from "@/lib/supabase/server";
+import { incrementViews } from "@/app/article/actions";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+export default async function ArticlePage({ params }: ArticlePageProps) {
+  const { slug } = await params;
+  const supabase = await createClient();
 
-export default function ArticlePage({ params }: ArticlePageProps) {
-  const { slug } = use(params);
-  const [article, setArticle] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  // 1. Fetch data langsung di Server (Cepat & SEO Friendly)
+  const { data: dbArticle } = await supabase
+    .from("news")
+    .select("*")
+    .eq("slug", slug)
+    .single();
 
-  useEffect(() => {
-    const fetchArticle = async () => {
-      try {
-        setIsLoading(true);
-        // Try to fetch from Supabase first
-        const { data, error } = await supabase
-          .from("news")
-          .select("*")
-          .eq("slug", slug)
-          .single();
+  let article = null;
 
-        if (data) {
-          setArticle({
-            ...data,
-            id: data.id,
-            title: data.title,
-            excerpt: data.excerpt,
-            content: data.content,
-            category: data.category,
-            author: "Admin", // Fallback for now or fetch profile
-            authorAvatar: "AD",
-            date: data.created_at,
-            readTime: "5 menit",
-            imageGradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            thumbnail_url: data.thumbnail_url
-          });
-        } else {
-          // Fallback to mock
-          const mock = getArticleBySlug(slug);
-          if (mock) setArticle(mock);
-        }
-      } catch (err) {
-        console.error("Fetch article error:", err);
-        const mock = getArticleBySlug(slug);
-        if (mock) setArticle(mock);
-      } finally {
-        setIsLoading(false);
-      }
+  if (dbArticle) {
+    article = {
+      ...dbArticle,
+      id: dbArticle.id,
+      title: dbArticle.title,
+      excerpt: dbArticle.excerpt,
+      content: dbArticle.content,
+      category: dbArticle.category,
+      author: dbArticle.author || "Admin",
+      authorAvatar: dbArticle.author_avatar || "AD",
+      date: dbArticle.date || dbArticle.created_at,
+      readTime: dbArticle.read_time || "5 menit",
+      imageGradient: dbArticle.image_gradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      thumbnail_url: dbArticle.thumbnail_url,
+      tags: dbArticle.tags || []
     };
 
-    fetchArticle();
-  }, [slug, supabase]);
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-32 text-center">
-        <div className="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-secondary font-bold">Memuat Artikel...</p>
-      </div>
-    );
+    // Increment Views
+    incrementViews(article.id);
+  } else {
+    // Fallback ke mock jika data di DB tidak ada
+    article = getArticleBySlug(slug);
   }
 
   if (!article) {
@@ -84,27 +60,17 @@ export default function ArticlePage({ params }: ArticlePageProps) {
   return (
     <article className="mx-auto max-w-3xl px-4 sm:px-6 py-8" id="article-page">
       {/* Back Button */}
-      <motion.div
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-sm text-secondary hover:text-accent transition-colors mb-6"
+        id="back-to-home"
       >
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-secondary hover:text-accent transition-colors mb-6"
-          id="back-to-home"
-        >
-          <ArrowLeft size={16} />
-          Kembali ke Beranda
-        </Link>
-      </motion.div>
+        <ArrowLeft size={16} />
+        Kembali ke Beranda
+      </Link>
 
       {/* Article Header */}
-      <motion.header
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
+      <header>
         {/* Category */}
         <span className="inline-block bg-badge-bg text-badge-text text-xs font-semibold px-3 py-1 rounded-full mb-4">
           {article.category}
@@ -134,38 +100,19 @@ export default function ArticlePage({ params }: ArticlePageProps) {
           </span>
           <span className="flex items-center gap-1.5 text-sm text-secondary">
             <Clock size={14} />
-            {article.readTime} baca
+            {article.readTime}
           </span>
           <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            <button
-              className="p-2 rounded-lg hover:bg-surface transition-colors"
-              aria-label="Share"
-            >
-              <Share2 size={16} className="text-secondary" />
-            </button>
-            <button
-              className="p-2 rounded-lg hover:bg-surface transition-colors"
-              aria-label="Bookmark"
-            >
-              <Bookmark size={16} className="text-secondary" />
-            </button>
-          </div>
+          <InteractionButtons articleId={article.id} />
         </div>
-      </motion.header>
+      </header>
 
       {/* Featured Image */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="mt-8"
-      >
+      <div className="mt-8">
         <div
-          className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-surface-alt"
+          className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-surface-alt shadow-lg"
           style={{ 
             background: article.thumbnail_url ? 'none' : article.imageGradient,
-            backgroundImage: article.thumbnail_url ? `url(${article.thumbnail_url})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
@@ -174,50 +121,39 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             <img 
               src={article.thumbnail_url} 
               alt={article.title} 
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+              className="w-full h-full object-cover"
             />
           )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Article Body */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-8 prose-custom"
-      >
-        <div
-          className="text-base sm:text-lg text-secondary leading-relaxed sm:leading-loose space-y-5
-            [&_p]:mb-0
-            [&_strong]:text-foreground [&_strong]:font-semibold
-          "
-          dangerouslySetInnerHTML={{ __html: article.content }}
-        />
-      </motion.div>
+      {/* Article Body with Reading Controls */}
+      <ReadingToolbar content={article.content} />
 
       {/* Tags */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.4 }}
-        className="flex flex-wrap items-center gap-2.5 mt-8"
-      >
-        {["Berita", article.category, "Indonesia", "2026"].map((tag) => (
-          <Link
-            key={tag}
-            href={`/category?tag=${encodeURIComponent(tag)}`}
-            className="inline-flex items-center justify-center text-xs font-bold bg-surface/80 backdrop-blur-sm text-secondary px-4 py-2 rounded-full border border-border/60 hover:border-accent/40 hover:bg-accent/5 hover:text-accent transition-all duration-300 shadow-sm hover:shadow-md"
-          >
-            #{tag}
-          </Link>
-        ))}
-      </motion.div>
+      {(() => {
+        const tags: string[] = article.tags && article.tags.length > 0
+          ? article.tags
+          : [article.category];
+        return (
+          <div className="flex flex-wrap items-center gap-2.5 mt-10">
+            {tags.map((tag: string) => (
+              <Link
+                key={tag}
+                href={`/category?tag=${encodeURIComponent(tag)}`}
+                className="inline-flex items-center justify-center text-xs font-bold bg-surface/80 backdrop-blur-sm text-secondary px-4 py-2 rounded-full border border-border/60 hover:border-accent hover:text-accent transition-all duration-300"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Related News */}
       <RelatedNews articles={relatedArticles} />
 
-      {/* Comments */}
+      {/* Comments Area */}
       <CommentSection articleId={article.id} />
     </article>
   );

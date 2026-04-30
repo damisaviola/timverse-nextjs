@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock, User } from "lucide-react";
-import { newsArticles } from "@/data/mockNews";
+import type { NewsArticle } from "@/data/mockNews";
 import { formatDate } from "@/lib/utils";
 
-export default function HeroSection() {
-  const featured = newsArticles[0]; // First article is featured
+interface HeroSectionProps {
+  featured: NewsArticle;
+}
+
+export default function HeroSection({ featured }: HeroSectionProps) {
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-4" id="hero-section">
@@ -19,10 +22,15 @@ export default function HeroSection() {
         <Link href={`/article/${featured.slug}`} className="block group">
           <div className="relative overflow-hidden rounded-3xl">
             {/* Image Placeholder */}
-            <div
-              className="aspect-[21/9] sm:aspect-[21/8] w-full"
-              style={{ background: featured.imageGradient }}
-            />
+            <div className="relative aspect-[21/9] sm:aspect-[21/8] w-full">
+              <div
+                className="absolute inset-0"
+                style={{ background: featured.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+              />
+              {featured.thumbnail_url && (
+                <img src={featured.thumbnail_url} alt={featured.title} className="absolute inset-0 w-full h-full object-cover" />
+              )}
+            </div>
 
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />

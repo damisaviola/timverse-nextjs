@@ -46,7 +46,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               avatar_url
             )
           `)
-          .eq("article_id", articleId)
+          .eq("news_id", articleId)
           .order("created_at", { ascending: false });
 
         if (fetchError) {
@@ -91,7 +91,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       const { data } = await supabase
         .from("comments")
         .select(`id, content, created_at, user_id, profiles(full_name, username, avatar_url)`)
-        .eq("id", (await supabase.from("comments").select("id").eq("article_id", articleId).order("created_at", { ascending: false }).limit(1).single()).data?.id) // This is a bit hacky for a quick update
+        .eq("id", (await supabase.from("comments").select("id").eq("news_id", articleId).order("created_at", { ascending: false }).limit(1).single()).data?.id) 
         .single();
       
       // Actually just refetch all for simplicity or revalidatePath handles it if using server components
@@ -99,7 +99,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       const { data: refreshedData } = await supabase
         .from("comments")
         .select("id, content, created_at, user_id, profiles(full_name, username, avatar_url)")
-        .eq("article_id", articleId)
+        .eq("news_id", articleId)
         .order("created_at", { ascending: false });
       
       if (refreshedData) setComments(refreshedData);
