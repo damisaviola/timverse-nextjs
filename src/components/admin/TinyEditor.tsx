@@ -23,7 +23,7 @@ export default function TinyEditor({ value, onChange }: TinyEditorProps) {
           height: 650,
           menubar: false,
           plugins: [
-            "advlist", "autolink", "lists", "link", "charmap", "preview",
+            "advlist", "autolink", "lists", "link", "image", "charmap", "preview",
             "anchor", "searchreplace", "visualblocks", "code", "fullscreen",
             "insertdatetime", "media", "table", "help", "wordcount"
           ],
@@ -31,8 +31,34 @@ export default function TinyEditor({ value, onChange }: TinyEditorProps) {
             "undo redo | blocks | " +
             "bold italic underline strikethrough | alignleft aligncenter " +
             "alignright alignjustify | bullist numlist outdent indent | " +
-            "link table | code preview fullscreen | help",
+            "link image table | code preview fullscreen | help",
           content_style: "body { font-family:var(--font-outfit),Helvetica,Arial,sans-serif; font-size:16px }",
+          
+          // Image Upload Integration
+          image_advtab: true,
+          images_upload_handler: async (blobInfo: any) => {
+            try {
+              const { createClient } = await import("@/lib/supabase/client");
+              const supabase = createClient();
+              const file = blobInfo.blob();
+              const fileName = `content/${Date.now()}-${blobInfo.filename()}`;
+              
+              const { data, error } = await supabase.storage
+                .from("news-content")
+                .upload(fileName, file);
+
+              if (error) throw error;
+
+              const { data: { publicUrl } } = supabase.storage
+                .from("news-content")
+                .getPublicUrl(data.path);
+
+              return publicUrl;
+            } catch (error) {
+              console.error("Upload failed:", error);
+              throw new Error("Gagal mengunggah gambar ke storage.");
+            }
+          },
           
           // Theme Integration
           skin: theme === "dark" ? "oxide-dark" : "oxide",

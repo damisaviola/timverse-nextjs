@@ -109,20 +109,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
       {/* Featured Image */}
       <div className="mt-8">
-        <div
-          className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-surface-alt shadow-lg"
-          style={{ 
-            background: article.thumbnail_url ? 'none' : article.imageGradient,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        >
-          {article.thumbnail_url && (
+        <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-surface-alt shadow-lg flex items-center justify-center">
+          {article.thumbnail_url ? (
             <img 
               src={article.thumbnail_url} 
               alt={article.title} 
               className="w-full h-full object-cover"
             />
+          ) : (
+            <div className="text-muted font-black text-xl uppercase tracking-widest opacity-20">No Article Image</div>
           )}
         </div>
       </div>

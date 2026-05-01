@@ -42,13 +42,11 @@ export default function PopularNewsSection({ popularArticles }: PopularNewsSecti
           <Link href={`/article/${topArticle.slug}`} className="block group h-full" id={`popular-top-${topArticle.slug}`}>
             <div className="relative overflow-hidden rounded-2xl h-full min-h-[320px] sm:min-h-[380px]">
               {/* Background gradient */}
-              <div className="absolute inset-0">
-                <div
-                  className="absolute inset-0"
-                  style={{ background: topArticle.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-                />
-                {topArticle.thumbnail_url && (
+              <div className="absolute inset-0 bg-surface-alt flex items-center justify-center">
+                {topArticle.thumbnail_url ? (
                   <img src={topArticle.thumbnail_url} alt={topArticle.title} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="text-muted font-black text-lg uppercase tracking-widest opacity-20">Popular #1 — No Image</div>
                 )}
               </div>
               {/* Overlay */}
@@ -102,13 +100,11 @@ export default function PopularNewsSection({ popularArticles }: PopularNewsSecti
                   </div>
 
                   {/* Thumbnail */}
-                  <div className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden">
-                    <div
-                      className="absolute inset-0"
-                      style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-                    />
-                    {article.thumbnail_url && (
+                  <div className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-surface-alt flex items-center justify-center border border-border/40">
+                    {article.thumbnail_url ? (
                       <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-[8px] font-bold text-muted uppercase tracking-tighter">No Image</div>
                     )}
                   </div>
 

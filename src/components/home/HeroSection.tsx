@@ -22,13 +22,13 @@ export default function HeroSection({ featured }: HeroSectionProps) {
         <Link href={`/article/${featured.slug}`} className="block group">
           <div className="relative overflow-hidden rounded-3xl">
             {/* Image Placeholder */}
-            <div className="relative aspect-[21/9] sm:aspect-[21/8] w-full">
-              <div
-                className="absolute inset-0"
-                style={{ background: featured.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-              />
-              {featured.thumbnail_url && (
+            <div className="relative aspect-[21/9] sm:aspect-[21/8] w-full bg-surface-alt flex items-center justify-center">
+              {featured.thumbnail_url ? (
                 <img src={featured.thumbnail_url} alt={featured.title} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-surface-alt flex items-center justify-center text-muted font-black text-xl uppercase tracking-widest opacity-20">
+                  Featured News — No Image
+                </div>
               )}
             </div>
 

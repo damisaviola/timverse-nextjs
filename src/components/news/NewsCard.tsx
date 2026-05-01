@@ -23,13 +23,11 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
         <Link href={`/article/${article.slug}`} className="block group" id={`news-card-${article.slug}`}>
           <div className="flex gap-4 bg-card rounded-2xl p-3 border border-border hover:shadow-md hover:border-accent/20 transition-all duration-300">
             {/* Small Thumbnail */}
-            <div className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden">
-              <div
-                className="absolute inset-0"
-                style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-              />
-              {article.thumbnail_url && (
+            <div className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-surface-alt flex items-center justify-center border border-border/40">
+              {article.thumbnail_url ? (
                 <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="text-[10px] font-bold text-muted uppercase tracking-tighter">No Img</div>
               )}
             </div>
 
@@ -62,13 +60,11 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
         <Link href={`/article/${article.slug}`} className="block group" id={`news-card-${article.slug}`}>
           <div className="bg-card rounded-2xl overflow-hidden border border-border hover:shadow-md hover:border-accent/20 transition-all duration-300">
             {/* Thumbnail */}
-            <div className="relative aspect-[16/10] w-full">
-              <div
-                className="absolute inset-0"
-                style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-              />
-              {article.thumbnail_url && (
+            <div className="relative aspect-[16/10] w-full bg-surface-alt flex items-center justify-center">
+              {article.thumbnail_url ? (
                 <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="text-xs font-bold text-muted uppercase tracking-widest">No Thumbnail</div>
               )}
             </div>
 
@@ -102,14 +98,14 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
       <Link href={`/article/${article.slug}`} className="block group h-full" id={`news-card-${article.slug}`}>
         <div className="h-full flex flex-col bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-lg hover:border-accent/20 hover:-translate-y-0.5 transition-all duration-300">
           {/* Image */}
-          <div className="relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+          <div className="relative overflow-hidden group-hover:scale-105 transition-transform duration-500 bg-surface-alt flex items-center justify-center">
             <div className="relative aspect-[16/9] w-full">
-              <div
-                className="absolute inset-0"
-                style={{ background: article.imageGradient || "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-              />
-              {article.thumbnail_url && (
+              {article.thumbnail_url ? (
                 <img src={article.thumbnail_url} alt={article.title} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-surface-alt text-muted text-xs font-bold uppercase tracking-widest">
+                  Storage Image Only
+                </div>
               )}
             </div>
             <div className="absolute top-3 left-3">
