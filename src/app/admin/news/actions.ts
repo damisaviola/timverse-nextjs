@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-utils";
+import sharp from "sharp";
 
 /**
  * Mengambil semua berita dari database Supabase.
@@ -57,13 +58,21 @@ export async function createNews(formData: FormData) {
 
     // 1. Upload thumbnail jika ada
     if (thumbnail && thumbnail.size > 0) {
-      const fileExt = thumbnail.name.split(".").pop();
-      const fileName = `${slug}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileBuffer = Buffer.from(await thumbnail.arrayBuffer());
+      const compressedBuffer = await sharp(fileBuffer)
+        .resize(1200, 800, { fit: 'cover' })
+        .webp({ quality: 80 })
+        .toBuffer();
+
+      const fileName = `${slug}-${Math.random().toString(36).substring(2)}.webp`;
       const filePath = `thumbnails/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("news-thumbnails")
-        .upload(filePath, thumbnail);
+        .upload(filePath, compressedBuffer, {
+          contentType: 'image/webp',
+          upsert: true
+        });
 
       if (uploadError) {
         console.error("Storage Error:", uploadError);
@@ -169,5 +178,29 @@ export async function deleteNews(newsId: string) {
   } catch (error: any) {
     console.error("Delete News Exception:", error);
     return { error: error.message || "Terjadi kesalahan sistem." };
+  }
+}
+
+/**
+ * Mengambil statistik jumlah data untuk sidebar admin.
+ */
+export async function getAdminStats() {
+  try {
+    const supabase = await createClient();
+
+    const [newsRes, reportsRes, commentsRes] = await Promise.all([
+      supabase.from("news").select("*", { count: "exact", head: true }),
+      supabase.from("reports").select("*", { count: "exact", head: true }),
+      supabase.from("comments").select("*", { count: "exact", head: true })
+    ]);
+
+    return {
+      newsCount: newsRes.count || 0,
+      reportsCount: reportsRes.count || 0,
+      commentsCount: commentsRes.count || 0,
+    };
+  } catch (error) {
+    console.error("Get Admin Stats Error:", error);
+    return { newsCount: 0, reportsCount: 0, commentsCount: 0 };
   }
 }

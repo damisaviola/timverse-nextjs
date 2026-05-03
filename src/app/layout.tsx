@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import LayoutShell from "@/components/layout/LayoutShell";
+import NextTopLoader from "nextjs-toploader";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -57,6 +58,17 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className={`${outfit.className} min-h-full flex flex-col antialiased`}>
+        <NextTopLoader 
+          color="#6366f1"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #6366f1,0 0 5px #6366f1"
+        />
         <ThemeProvider>
           <LayoutShell>{children}</LayoutShell>
         </ThemeProvider>

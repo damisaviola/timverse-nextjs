@@ -6,12 +6,12 @@ import { Sparkles } from "lucide-react";
 import { categoryIcons } from "@/lib/categoryIcons";
 
 const categoryItems = [
+  { name: "Mimika", description: "Berita Seputar Mimika" },
+  { name: "Pemerintahan", description: "Kebijakan & Birokrasi" },
+  { name: "Sosial", description: "Masyarakat & Budaya" },
   { name: "Teknologi", description: "AI, Gadget & Digital" },
   { name: "Bisnis", description: "Ekonomi & Startup" },
   { name: "Olahraga", description: "Sepakbola & Esports" },
-  { name: "Hiburan", description: "Film, Musik & Seni" },
-  { name: "Sains", description: "Riset & Antariksa" },
-  { name: "Politik", description: "Kebijakan & Pemerintahan" },
 ];
 
 export default function CategorySection() {

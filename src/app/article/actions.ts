@@ -19,6 +19,10 @@ export async function postComment(formData: FormData) {
       return { error: "Komentar tidak boleh kosong." };
     }
 
+    if (content.length > 280) {
+      return { error: "Komentar terlalu panjang (Maks. 280 karakter)." };
+    }
+
     if (!articleId) {
       return { error: "ID Artikel tidak valid." };
     }
@@ -37,7 +41,7 @@ export async function postComment(formData: FormData) {
     }
 
     revalidatePath(`/article/[slug]`, "page");
-    
+
     return { success: true };
   } catch (error: any) {
     console.error("Post Comment Exception:", error);
@@ -143,22 +147,22 @@ export async function toggleSave(articleId: string) {
 export async function incrementViews(articleId: string) {
   try {
     const supabase = await createClient();
-    
+
     // Ambil data views saat ini
     const { data: currentData } = await supabase
       .from("news")
       .select("views")
       .eq("id", articleId)
       .single();
-    
+
     const newViews = (currentData?.views || 0) + 1;
-    
+
     // Update ke database
     await supabase
       .from("news")
       .update({ views: newViews })
       .eq("id", articleId);
-      
+
   } catch (err) {
     console.error("Increment Views Error:", err);
   }

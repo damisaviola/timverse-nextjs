@@ -16,46 +16,23 @@ import {
   LifeBuoy,
   AlertCircle,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminLogout } from "@/app/auth/actions";
+import { getAdminStats } from "@/app/admin/news/actions";
 
 interface SidebarLink {
   label: string;
   href: string;
   icon: any;
-  badge?: string;
+  badge?: string | number;
 }
 
 interface SidebarGroup {
   label: string | null;
   links: SidebarLink[];
 }
-
-const groups: SidebarGroup[] = [
-  {
-    label: null,
-    links: [
-      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    ],
-  },
-  {
-    label: "Sumber Daya",
-    links: [
-      { label: "Semua Artikel", href: "/admin#articles", icon: FileText, badge: "128" },
-      { label: "Tambah Berita", href: "/admin/news/create", icon: FilePlus },
-      { label: "Kategori", href: "/admin#categories", icon: FolderOpen },
-    ],
-  },
-  {
-    label: "Sistem",
-    links: [
-      { label: "Analitik", href: "/admin/reports", icon: BarChart3 },
-      { label: "Pengaduan", href: "/admin/complaints", icon: AlertCircle, badge: "3" },
-      { label: "Pengaturan", href: "/admin#settings", icon: Settings },
-    ],
-  },
-];
 
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -68,24 +45,61 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [stats, setStats] = useState({ newsCount: 0, reportsCount: 0, commentsCount: 0 });
 
-  // Use useEffect to handle hydration safely
+  // Use useEffect to handle hydration and fetch stats
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    const fetchStats = async () => {
+      const data = await getAdminStats();
+      setStats(data);
+    };
+
+    fetchStats();
+  }, [pathname]); // Refresh stats when navigating
 
   const isActive = (href: string) => {
-    // If not mounted yet (server pre-render or first client-side pass), 
-    // only check the base pathname to avoid hydration mismatch.
-    if (!mounted) {
-      return pathname === href;
+    if (!mounted) return pathname === href;
+
+    if (pathname === href) return true;
+
+    // Special cases for hashes or roots
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && href.includes(hash) && pathname === "/admin") return true;
     }
 
-    // After mounting, we can safely access browser-only properties like location.hash
-    const hash = window.location.hash;
-    if (!hash && href === "/admin") return true;
-    return href.endsWith(hash) && hash !== "";
+    if (pathname === "/admin" && href === "/admin") return true;
+
+    return false;
   };
+
+  const groups: SidebarGroup[] = [
+    {
+      label: null,
+      links: [
+        { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+      ],
+    },
+    {
+      label: "Sumber Daya",
+      links: [
+        { label: "Semua Artikel", href: "/admin", icon: FileText, badge: stats.newsCount },
+        { label: "Tambah Berita", href: "/admin/news/create", icon: FilePlus },
+        { label: "Kategori", href: "/admin/categories", icon: FolderOpen },
+      ],
+    },
+    {
+      label: "Sistem",
+      links: [
+        { label: "Analitik", href: "/admin/reports", icon: BarChart3 },
+        { label: "Pengaduan", href: "/admin/complaints", icon: AlertCircle, badge: stats.reportsCount },
+        { label: "Komentar", href: "/admin/comments", icon: MessageSquare, badge: stats.commentsCount },
+        { label: "Pengaturan", href: "/admin#settings", icon: Settings },
+      ],
+    },
+  ];
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card dark:bg-sidebar overflow-hidden">
@@ -151,7 +165,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                       />
                       {!collapsed && <span>{link.label}</span>}
                     </div>
-                    {!collapsed && link.badge && (
+                    {!collapsed && (link.badge !== undefined && link.badge !== null) && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm ${
                         active 
                           ? "bg-indigo-600 text-white" 

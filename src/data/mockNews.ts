@@ -14,6 +14,7 @@ export interface NewsArticle {
   created_at?: string;
   featured: boolean;
   views: number;
+  search_count?: number;
 }
 
 export interface Comment {
@@ -32,6 +33,9 @@ export const categories = [
   { name: "Hiburan", color: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300" },
   { name: "Sains", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300" },
   { name: "Politik", color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
+  { name: "Mimika", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300" },
+  { name: "Pemerintahan", color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300" },
+  { name: "Sosial", color: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" },
 ];
 
 export const breakingNews = [
@@ -58,7 +62,7 @@ const gradients = [
 
 export const newsArticles: NewsArticle[] = [
   {
-    id: "1",
+    id: "00000000-0000-0000-0000-000000000001",
     slug: "revolusi-ai-generatif-2026",
     title: "Revolusi AI Generatif 2026: Bagaimana Kecerdasan Buatan Mengubah Dunia Kerja",
     excerpt: "Para ahli memproyeksikan bahwa 40% pekerjaan akan bertransformasi dalam 5 tahun ke depan dengan adopsi AI generatif yang makin masif.",
@@ -76,7 +80,7 @@ export const newsArticles: NewsArticle[] = [
     views: 15420,
   },
   {
-    id: "2",
+    id: "00000000-0000-0000-0000-000000000002",
     slug: "startup-indonesia-unicorn-baru",
     title: "Startup Indonesia Cetak Unicorn Baru di Sektor Healthtech",
     excerpt: "MedikAI menjadi unicorn ke-15 Indonesia setelah mendapatkan pendanaan Seri C sebesar $150 juta dari investor global.",
@@ -92,7 +96,7 @@ export const newsArticles: NewsArticle[] = [
     views: 8730,
   },
   {
-    id: "3",
+    id: "00000000-0000-0000-0000-000000000003",
     slug: "timnas-indonesia-semifinal",
     title: "Timnas Indonesia Melaju ke Semifinal Piala Asia 2026 dengan Kemenangan Dramatis",
     excerpt: "Gol di injury time membawa Garuda ke babak empat besar, mengalahkan Korea Selatan 2-1 di Stadium Nasional.",
@@ -108,7 +112,7 @@ export const newsArticles: NewsArticle[] = [
     views: 24150,
   },
   {
-    id: "4",
+    id: "00000000-0000-0000-0000-000000000004",
     slug: "konser-virtual-metaverse",
     title: "Konser Virtual di Metaverse Pecahkan Rekor: 50 Juta Penonton Serentak",
     excerpt: "Kolaborasi musisi dunia dalam konser metaverse terbesar sepanjang sejarah menarik perhatian global.",
@@ -123,7 +127,7 @@ export const newsArticles: NewsArticle[] = [
     views: 18900,
   },
   {
-    id: "5",
+    id: "00000000-0000-0000-0000-000000000005",
     slug: "penemuan-planet-baru",
     title: "Teleskop James Webb Temukan Planet Mirip Bumi dengan Atmosfer Beroksigen",
     excerpt: "Penemuan bersejarah ini membuka kemungkinan baru dalam pencarian kehidupan di luar tata surya.",
@@ -138,7 +142,7 @@ export const newsArticles: NewsArticle[] = [
     views: 21300,
   },
   {
-    id: "6",
+    id: "00000000-0000-0000-0000-000000000006",
     slug: "kebijakan-ekonomi-hijau",
     title: "Pemerintah Luncurkan Kebijakan Ekonomi Hijau: Target Net Zero 2045",
     excerpt: "Paket kebijakan baru mencakup insentif pajak untuk industri ramah lingkungan dan pengetatan regulasi emisi karbon.",
@@ -153,7 +157,7 @@ export const newsArticles: NewsArticle[] = [
     views: 9500,
   },
   {
-    id: "7",
+    id: "00000000-0000-0000-0000-000000000007",
     slug: "quantum-computing-terobosan",
     title: "Terobosan Quantum Computing: Google Capai 1000 Qubit Stabil",
     excerpt: "Milestone ini membuka era baru komputasi kuantum untuk aplikasi praktis di industri farmasi dan keuangan.",
@@ -168,7 +172,7 @@ export const newsArticles: NewsArticle[] = [
     views: 12800,
   },
   {
-    id: "8",
+    id: "00000000-0000-0000-0000-000000000008",
     slug: "ekonomi-digital-indonesia",
     title: "Ekonomi Digital Indonesia Tembus $200 Miliar, Tertinggi di Asia Tenggara",
     excerpt: "Pertumbuhan didorong oleh adopsi fintech, e-commerce, dan layanan digital yang makin merata hingga pelosok.",
@@ -183,7 +187,7 @@ export const newsArticles: NewsArticle[] = [
     views: 7200,
   },
   {
-    id: "9",
+    id: "00000000-0000-0000-0000-000000000009",
     slug: "olimpiade-esports-resmi",
     title: "IOC Resmi Masukkan Esports sebagai Cabang Olimpiade 2028",
     excerpt: "Lima game kompetitif akan dipertandingkan untuk pertama kalinya di ajang Olimpiade Los Angeles.",
@@ -198,7 +202,7 @@ export const newsArticles: NewsArticle[] = [
     views: 16400,
   },
   {
-    id: "10",
+    id: "00000000-0000-0000-0000-000000000010",
     slug: "film-indonesia-cannes",
     title: "Film Indonesia Raih Penghargaan Tertinggi di Festival Film Cannes 2026",
     excerpt: "Karya sutradara muda asal Yogyakarta mendapat standing ovation 12 menit dan membawa pulang Palme d'Or.",
@@ -213,7 +217,7 @@ export const newsArticles: NewsArticle[] = [
     views: 31200,
   },
   {
-    id: "11",
+    id: "00000000-0000-0000-0000-000000000011",
     slug: "fusi-nuklir-komersial",
     title: "Fusi Nuklir Komersial Selangkah Lagi: Reaktor Pertama Siap 2030",
     excerpt: "Proyek ITER akhirnya menunjukkan hasil positif, membuka jalan bagi energi bersih tak terbatas.",
@@ -228,7 +232,7 @@ export const newsArticles: NewsArticle[] = [
     views: 19700,
   },
   {
-    id: "12",
+    id: "00000000-0000-0000-0000-000000000012",
     slug: "reformasi-pendidikan-digital",
     title: "Reformasi Pendidikan Digital: Kurikulum AI Wajib untuk Seluruh Sekolah",
     excerpt: "Mulai tahun ajaran 2027, literasi AI dan computational thinking menjadi mata pelajaran wajib di seluruh jenjang pendidikan.",
@@ -285,7 +289,7 @@ export function getArticlesByCategory(category: string): NewsArticle[] {
 
 export function searchArticles(query: string): NewsArticle[] {
   const lowerQuery = query.toLowerCase();
-  return newsArticles.filter((a) => 
+  return newsArticles.filter((a) =>
     a.title.toLowerCase().includes(lowerQuery) ||
     a.excerpt.toLowerCase().includes(lowerQuery) ||
     a.category.toLowerCase().includes(lowerQuery) ||

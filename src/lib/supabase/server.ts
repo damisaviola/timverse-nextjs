@@ -15,7 +15,12 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options as CookieOptions)
+              cookieStore.set(name, value, {
+                ...options,
+                // Pastikan secure: false jika bukan production agar HP bisa login via HTTP
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+              } as CookieOptions)
             })
           } catch (error) {
             // The `set` method was called from a Server Component.

@@ -22,11 +22,10 @@ export default function CategoryPills({ activeCategory, onCategoryChange }: Cate
             <motion.button
               key={cat.name}
               onClick={() => onCategoryChange(cat.name)}
-              className={`relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border ${
-                isActive
+              className={`relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border ${isActive
                   ? "bg-accent text-white border-accent shadow-sm"
                   : "bg-card text-secondary border-border hover:border-accent/30 hover:text-foreground"
-              }`}
+                }`}
               whileTap={{ scale: 0.95 }}
               id={`pill-${cat.name.toLowerCase()}`}
             >

@@ -9,6 +9,7 @@ import { getBlogPostBySlug, getLatestBlogPosts, getRelatedBlogPosts } from "@/da
 import { formatDate } from "@/lib/utils";
 import BlogCard from "@/components/blog/BlogCard";
 import BlogComments from "@/components/blog/BlogComments";
+import ShareButton from "@/components/news/ShareButton";
 
 interface BlogDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -105,9 +106,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
             <button className="p-4 rounded-2xl bg-surface border border-border/60 text-secondary hover:text-red-500 hover:border-red-500/30 transition-all">
               <Heart size={20} />
             </button>
-            <button className="p-4 rounded-2xl bg-surface border border-border/60 text-secondary hover:text-accent hover:border-accent/30 transition-all">
-              <Share2 size={20} />
-            </button>
+            <ShareButton title={post.title} variant="icon" />
             <button className="p-4 rounded-2xl bg-surface border border-border/60 text-secondary hover:text-indigo-500 hover:border-indigo-500/30 transition-all">
               <Bookmark size={20} />
             </button>
@@ -122,7 +121,6 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                dangerouslySetInnerHTML={{ __html: post.content }}
              />
 
-             {/* Tags Section */}
              <div className="mt-16 pt-8 border-t border-border flex flex-wrap gap-2">
                 {post.tags.map(tag => (
                    <span key={tag} className="px-4 py-2 bg-surface text-[11px] font-bold text-muted rounded-xl border border-border/40 hover:text-accent hover:border-accent/40 transition-colors cursor-pointer">

@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { 
-  FileText, Eye, MessageSquare, TrendingUp, MoreHorizontal, 
-  PenSquare, Trash2, ExternalLink, ChevronRight, Search, 
+import {
+  FileText, Eye, MessageSquare, TrendingUp, MoreHorizontal,
+  PenSquare, Trash2, ExternalLink, ChevronRight, Search,
   ArrowUpDown, ChevronUp, ChevronDown, Filter, X, Loader2,
   AlertTriangle, RefreshCw
 } from "lucide-react";
 import { fetchNews, deleteNews } from "@/app/admin/news/actions";
+import AdminLoadingState from "@/components/admin/AdminLoadingState";
 
 // Type for news from Supabase
 interface SupabaseNews {
@@ -31,10 +33,11 @@ interface SupabaseNews {
 type SortKey = "title" | "category" | "created_at" | "views";
 
 export default function AdminDashboardPage() {
+  const searchParams = useSearchParams();
   const [news, setNews] = useState<SupabaseNews[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: "asc" | "desc" }>({
     key: "created_at",
     direction: "desc",
@@ -43,6 +46,15 @@ export default function AdminDashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const itemsPerPage = 5;
+
+  // Sync with URL search params
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q !== null) {
+      setSearchTerm(q);
+      setCurrentPage(1);
+    }
+  }, [searchParams]);
 
   // Fetch news from Supabase
   const loadNews = useCallback(async () => {
@@ -212,7 +224,7 @@ export default function AdminDashboardPage() {
                 <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
               </button>
             </div>
-            
+
             {/* Search Bar */}
             <div className="relative group w-full sm:w-72">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-indigo-500 transition-colors" size={16} />
@@ -224,7 +236,7 @@ export default function AdminDashboardPage() {
                 className="w-full bg-card border border-border/60 rounded-xl pl-10 pr-10 py-2 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
               {searchTerm && (
-                <button 
+                <button
                   onClick={() => setSearchTerm("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground p-0.5"
                 >
@@ -233,14 +245,14 @@ export default function AdminDashboardPage() {
               )}
             </div>
           </div>
-          
+
           <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
             {/* Error State */}
             {error && (
               <div className="px-6 py-4 bg-red-500/5 border-b border-red-500/10 flex items-center gap-3">
                 <AlertTriangle size={16} className="text-red-500 shrink-0" />
                 <p className="text-xs font-medium text-red-500">{error}</p>
-                <button 
+                <button
                   onClick={loadNews}
                   className="ml-auto text-xs font-bold text-red-500 hover:underline"
                 >
@@ -253,7 +265,7 @@ export default function AdminDashboardPage() {
               <table className="w-full text-left border-collapse table-fixed">
                 <thead>
                   <tr className="bg-surface-alt dark:bg-sidebar/50 border-b border-border/60">
-                    <th 
+                    <th
                       onClick={() => handleSort("title")}
                       className="w-[45%] px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted cursor-pointer hover:text-indigo-500 transition-colors"
                     >
@@ -264,7 +276,7 @@ export default function AdminDashboardPage() {
                         ) : <ArrowUpDown size={12} className="opacity-30" />}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => handleSort("category")}
                       className="w-[18%] px-4 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted cursor-pointer hover:text-indigo-500 transition-colors"
                     >
@@ -275,7 +287,7 @@ export default function AdminDashboardPage() {
                         ) : <ArrowUpDown size={12} className="opacity-30" />}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => handleSort("views")}
                       className="w-[12%] px-4 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted cursor-pointer hover:text-indigo-500 transition-colors text-center"
                     >
@@ -286,7 +298,7 @@ export default function AdminDashboardPage() {
                         ) : <ArrowUpDown size={12} className="opacity-30" />}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => handleSort("created_at")}
                       className="w-[13%] px-4 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted cursor-pointer hover:text-indigo-500 transition-colors"
                     >
@@ -321,20 +333,20 @@ export default function AdminDashboardPage() {
                     ))
                   ) : paginatedData.length > 0 ? (
                     paginatedData.map((article) => (
-                      <motion.tr 
+                      <motion.tr
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        key={article.id} 
+                        key={article.id}
                         className="hover:bg-surface-alt/50 transition-colors group"
                       >
                         {/* Judul + Thumbnail */}
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3.5">
                             {article.thumbnail_url ? (
-                              <img 
-                                src={article.thumbnail_url} 
-                                alt="" 
-                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border/40 shadow-sm" 
+                              <img
+                                src={article.thumbnail_url}
+                                alt=""
+                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border/40 shadow-sm"
                               />
                             ) : (
                               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 shrink-0 flex items-center justify-center border border-border/40">
@@ -401,7 +413,7 @@ export default function AdminDashboardPage() {
                               </div>
                             ) : (
                               <>
-                                <Link 
+                                <Link
                                   href={`/article/${article.slug}`}
                                   className="w-8 h-8 flex items-center justify-center text-muted hover:text-indigo-600 hover:bg-indigo-600/10 rounded-lg transition-all"
                                   title="Lihat Artikel"
@@ -409,9 +421,9 @@ export default function AdminDashboardPage() {
                                 >
                                   <ExternalLink size={14} />
                                 </Link>
-                                <button 
+                                <button
                                   onClick={() => setDeleteConfirmId(article.id)}
-                                  className="w-8 h-8 flex items-center justify-center text-muted hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-all" 
+                                  className="w-8 h-8 flex items-center justify-center text-muted hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-all"
                                   title="Hapus Artikel"
                                 >
                                   <Trash2 size={14} />
@@ -440,7 +452,7 @@ export default function AdminDashboardPage() {
                                 <FileText size={24} className="text-indigo-500" />
                               </div>
                               <p className="text-sm font-bold text-secondary">Belum ada berita</p>
-                              <Link 
+                              <Link
                                 href="/admin/news/create"
                                 className="text-xs font-bold text-indigo-600 hover:underline mt-1"
                               >
@@ -465,14 +477,14 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-[11px] font-bold text-muted tabular-nums">Hal. {currentPage}/{totalPages || 1}</span>
                   <div className="flex gap-1.5">
-                    <button 
+                    <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                       className="px-3.5 py-1.5 bg-card border border-border text-[11px] font-bold rounded-lg hover:bg-surface-alt transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       ← Prev
                     </button>
-                    <button 
+                    <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages || totalPages === 0}
                       className="px-3.5 py-1.5 bg-indigo-600 text-white border border-indigo-600 text-[11px] font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-600/20 disabled:opacity-30 disabled:cursor-not-allowed"
@@ -493,14 +505,14 @@ export default function AdminDashboardPage() {
             </div>
             <h2 className="text-lg font-bold text-foreground">Aksi Cepat</h2>
           </div>
-          
+
           <div className="bg-card rounded-2xl border border-border/60 p-8 shadow-sm space-y-6">
             <div>
               <h3 className="text-sm font-bold text-foreground">Buat Berita Baru</h3>
               <p className="text-xs text-secondary mt-1">Publikasikan artikel terbaru Anda sekarang di halaman khusus.</p>
             </div>
-            
-            <Link 
+
+            <Link
               href="/admin/news/create"
               className="group flex items-center justify-between w-full bg-indigo-600 p-4 rounded-2xl text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all hover:-translate-y-1 active:translate-y-0"
             >

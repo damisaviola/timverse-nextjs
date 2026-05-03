@@ -12,6 +12,7 @@ import type { NewsArticle } from "@/data/mockNews";
 function CategoryContent() {
   const searchParams = useSearchParams();
   const tagParam = searchParams.get("tag");
+  const catParam = searchParams.get("cat");
   
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [allNews, setAllNews] = useState<NewsArticle[]>([]);
@@ -54,24 +55,34 @@ function CategoryContent() {
     fetchNews();
   }, [supabase]);
 
-  // Set active category dari tag param
+  // Set active category dari param (cat atau tag)
   useEffect(() => {
+    // Jika ada parameter 'cat', prioritaskan itu sebagai kategori
+    if (catParam) {
+      setActiveCategory(catParam);
+      return;
+    }
+
+    // Jika ada parameter 'tag', cek apakah itu kategori atau tag murni
     if (tagParam) {
       const categories = [...new Set(allNews.map(n => n.category))];
       if (categories.includes(tagParam)) {
         setActiveCategory(tagParam);
       } else {
+        // Jika tidak ada di daftar kategori, biarkan isTagSearch yang menangani
         setActiveCategory("Semua");
       }
+    } else {
+      setActiveCategory("Semua");
     }
-  }, [tagParam, allNews]);
+  }, [tagParam, catParam, allNews]);
 
-  // Cek apakah tagParam adalah tag (bukan kategori)
+  // Cek apakah tagParam adalah tag murni (bukan kategori)
   const isTagSearch = useMemo(() => {
-    if (!tagParam) return false;
+    if (!tagParam || catParam) return false; // Jika ada 'cat', maka bukan pencarian tag
     const categories = [...new Set(allNews.map(n => n.category))];
     return !categories.includes(tagParam);
-  }, [tagParam, allNews]);
+  }, [tagParam, catParam, allNews]);
 
   // Filter berita
   const filteredArticles = useMemo(() => {

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Eye } from "lucide-react";
 import { getArticleBySlug, getRelatedArticles } from "@/data/mockNews";
 import { formatDate } from "@/lib/utils";
 import CommentSection from "@/components/news/CommentSection";
@@ -102,8 +102,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <Clock size={14} />
             {article.readTime}
           </span>
+          <span className="flex items-center gap-1.5 text-sm text-secondary">
+            <Eye size={14} />
+            {article.views?.toLocaleString() || 0} dilihat
+          </span>
           <div className="flex-1" />
-          <InteractionButtons articleId={article.id} />
+          <InteractionButtons articleId={article.id} title={article.title} />
         </div>
       </header>
 
@@ -111,9 +115,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <div className="mt-8">
         <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-surface-alt shadow-lg flex items-center justify-center">
           {article.thumbnail_url ? (
-            <img 
-              src={article.thumbnail_url} 
-              alt={article.title} 
+            <img
+              src={article.thumbnail_url}
+              alt={article.title}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -123,7 +127,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </div>
 
       {/* Article Body with Reading Controls */}
-      <ReadingToolbar content={article.content} />
+      <ReadingToolbar content={article.content} title={article.title} />
 
       {/* Tags */}
       {(() => {

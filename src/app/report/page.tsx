@@ -1,45 +1,136 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   AlertCircle, Send, ShieldCheck, Mail, 
   MessageSquare, FileText, CheckCircle2, 
-  ChevronRight, ArrowLeft 
+  ChevronRight, ArrowLeft, UploadCloud, X, ImageIcon
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-
-// FilePond Imports
-import { FilePond, registerPlugin } from "react-filepond";
-import "filepond/dist/filepond.min.css";
-import FilePondPluginImagePreview from "filepond-plugin-image-preview";
-import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
-import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
-import FilePondPluginFileValidateSize from "filepond-plugin-file-validate-size";
-
-// Register FilePond Plugins
-if (typeof window !== "undefined") {
-  registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
-}
+import { submitReport } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 
 export default function UserReportPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [files, setFiles] = useState<any[]>([]);
+  const [reportType, setReportType] = useState("");
+  const [category, setCategory] = useState("");
+  const [email, setEmail] = useState("");
+  const [description, setDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE_SIZE = 100 * 1024; // 100 KB
+  const MAX_DESCRIPTION = 500;
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Auto-fill email if logged in
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setEmail(user.email);
+      }
+    };
+    
+    checkUser();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) processFile(selectedFile);
+  };
+
+  const processFile = (selectedFile: File) => {
+    setError(null);
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setError(`File terlalu besar (Maks. 100 KB). Ukuran file Anda: ${(selectedFile.size / 1024).toFixed(1)} KB`);
+      return;
+    }
+
+    setFile(selectedFile);
+    if (selectedFile.type.startsWith('image/')) {
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    setPreviewUrl(null);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) processFile(droppedFile);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!reportType || reportType === "Pilih jenis laporan...") {
+      setError("Silakan pilih jenis laporan.");
+      return;
+    }
+
+    if (!category || category === "Pilih kategori...") {
+      setError("Silakan pilih kategori laporan.");
+      return;
+    }
+    
+    if (!description.trim()) {
+      setError("Deskripsi masalah wajib diisi.");
+      return;
+    }
+    
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setSubmitted(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("report_type", reportType);
+    formData.append("category", category);
+    formData.append("email", email);
+    formData.append("description", description);
+    if (file) {
+      formData.append("attachment", file);
+    }
+
+    try {
+      const result = await submitReport(formData);
+      if (result.success) {
+        setSubmitted(true);
+      } else {
+        setError(result.error || "Gagal mengirim laporan.");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan teknis. Silakan coba lagi.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   if (submitted) {
@@ -65,7 +156,14 @@ export default function UserReportPage() {
               Kembali ke Beranda
             </Link>
             <button 
-              onClick={() => setSubmitted(false)}
+              onClick={() => {
+                setSubmitted(false);
+                setReportType("");
+                setCategory("");
+                setDescription("");
+                setFile(null);
+                setPreviewUrl(null);
+              }}
               className="text-xs font-bold text-muted hover:text-foreground transition-colors uppercase tracking-widest"
             >
               Kirim Laporan Lain
@@ -78,49 +176,6 @@ export default function UserReportPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16" id="report-page">
-      <style jsx global>{`
-        /* Modern FilePond Customization */
-        .filepond--root {
-          margin-bottom: 0 !important;
-          font-family: inherit;
-        }
-        .filepond--panel-root {
-          background-color: var(--bg-tertiary);
-          border: 2px dashed var(--border);
-          opacity: 0.4;
-          border-radius: 1.5rem;
-        }
-        .filepond--drop-label {
-          color: var(--color-muted);
-          cursor: pointer;
-        }
-        .filepond--label-action {
-          text-decoration-color: rgba(99, 102, 241, 0.5);
-          color: #6366f1;
-          font-weight: 800;
-        }
-        .filepond--item-panel {
-          border-radius: 1rem;
-          background-color: #6366f1 !important;
-          box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
-        }
-        .filepond--file-action-button {
-          background-color: rgba(0, 0, 0, 0.5);
-          cursor: pointer;
-          backdrop-filter: blur(4px);
-          transition: all 0.2s ease;
-        }
-        .filepond--file-action-button:hover {
-          background-color: rgba(0, 0, 0, 0.8);
-          transform: scale(1.1);
-        }
-        .filepond--image-preview {
-          background: var(--bg-tertiary);
-        }
-        .filepond--credits {
-          display: none;
-        }
-      `}</style>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
         {/* Header Column */}
         <div className="lg:col-span-2 space-y-6">
@@ -176,11 +231,26 @@ export default function UserReportPage() {
             className="bg-card border border-border/60 rounded-[2.5rem] p-8 sm:p-10 shadow-sm relative overflow-hidden"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-bold flex items-center gap-2 mb-2"
+                >
+                  <AlertCircle size={14} />
+                  {error}
+                </motion.div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Jenis Laporan</label>
                   <div className="relative group">
-                    <select className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all appearance-none cursor-pointer group-hover:bg-surface-alt/40">
+                    <select 
+                      value={reportType}
+                      onChange={(e) => setReportType(e.target.value)}
+                      className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all appearance-none cursor-pointer group-hover:bg-surface-alt/40"
+                    >
                       <option>Pilih jenis laporan...</option>
                       <option>Bug/Masalah Teknis</option>
                       <option>Typo/Kesalahan Penulisan</option>
@@ -194,22 +264,58 @@ export default function UserReportPage() {
                   </div>
                 </div>
                 <div className="space-y-2.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Kategori</label>
+                  <div className="relative group">
+                    <select 
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all appearance-none cursor-pointer group-hover:bg-surface-alt/40"
+                    >
+                      <option>Pilih kategori...</option>
+                      <option>Mimika</option>
+                      <option>Pemerintahan</option>
+                      <option>Sosial</option>
+                      <option>Teknologi</option>
+                      <option>Bisnis</option>
+                      <option>Olahraga</option>
+                      <option>Hiburan</option>
+                      <option>Sains</option>
+                      <option>Politik</option>
+                      <option>Lainnya</option>
+                    </select>
+                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                      <ChevronRight size={14} className="rotate-90" />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Email (Optional)</label>
                   <div className="group">
                     <input 
                       type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="nama@email.com" 
                       className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-4 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all group-hover:bg-surface-alt/40"
                     />
                   </div>
+                  <p className="text-[9px] text-muted/50 ml-2 italic">Isi jika Anda ingin kami hubungi kembali terkait laporan ini.</p>
                 </div>
               </div>
 
               <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Deskripsi Masalah</label>
-                <div className="group">
+                <div className="flex justify-between items-end px-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Deskripsi Masalah</label>
+                  <span className={`text-[9px] font-black uppercase tracking-widest ${description.length >= MAX_DESCRIPTION ? 'text-red-500' : 'text-muted'}`}>
+                    {description.length}/{MAX_DESCRIPTION} Karakter
+                  </span>
+                </div>
+                <div className="group relative">
                   <textarea 
                     rows={5}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    maxLength={MAX_DESCRIPTION}
                     placeholder="Ceritakan detail masalah atau masukan Anda..."
                     className="w-full bg-surface-alt/20 border border-border/40 rounded-[1.5rem] px-6 py-5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none group-hover:bg-surface-alt/40"
                   ></textarea>
@@ -217,46 +323,63 @@ export default function UserReportPage() {
               </div>
 
               <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Lampiran Gambar (Optional)</label>
-                <div className="relative group overflow-hidden rounded-[1.5rem]">
-                  {!isMounted ? (
-                    <div className="h-[120px] w-full bg-surface-alt/20 animate-pulse rounded-[1.5rem] flex items-center justify-center border border-dashed border-border/40">
-                       <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Menyiapkan Upload...</span>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Lampiran Gambar (Optional - Maks. 100 KB)</label>
+                <div 
+                  className={`relative rounded-[1.5rem] border-2 border-dashed transition-all p-2 overflow-hidden ${
+                    isDragging ? 'border-accent bg-accent/5 scale-[1.01]' : 'border-border/40 bg-surface-alt/10 hover:border-accent/40'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    id="report-upload"
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                  />
+                  
+                  {file ? (
+                    <div className="p-4 flex flex-col items-center justify-center bg-accent/5">
+                      <div className="relative w-32 aspect-square rounded-2xl overflow-hidden border-2 border-white shadow-lg mb-4 group">
+                        {previewUrl ? (
+                          <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-surface-alt flex items-center justify-center text-muted">
+                            <ImageIcon size={32} />
+                          </div>
+                        )}
+                        <button 
+                          type="button"
+                          onClick={removeFile}
+                          className="absolute inset-0 bg-red-500/80 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+                        >
+                          <X size={20} className="mb-1" />
+                          <span className="text-[8px] font-black uppercase tracking-tighter">Hapus</span>
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[11px] font-black text-foreground truncate max-w-[200px] mb-1 uppercase tracking-tight">{file.name}</p>
+                        <p className="text-[10px] font-bold text-accent uppercase tracking-widest">
+                          {(file.size / 1024).toFixed(1)} KB • SIAP DIKIRIM
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    <FilePond
-                      files={files}
-                      onupdatefiles={setFiles}
-                      allowMultiple={true}
-                      maxFiles={3}
-                      name="files"
-                      labelIdle='Tarik & Lepas gambar atau <span class="filepond--label-action">Pilih File</span>'
-                      acceptedFileTypes={["image/*"]}
-                      labelFileTypeNotAllowed="Hanya file gambar yang diizinkan"
-                      maxFileSize="500KB"
-                      labelMaxFileSizeExceeded="File terlalu besar"
-                      labelMaxFileSize="Ukuran maksimum adalah {filesize}"
-                      server={{
-                        process: (fieldName, file, metadata, load, error, progress, abort) => {
-                          let p = 0;
-                          const interval = setInterval(() => {
-                            p += 5;
-                            progress(true, p, 100);
-                            if (p >= 100) {
-                              clearInterval(interval);
-                              load(file);
-                            }
-                          }, 100);
-                          return { abort: () => { clearInterval(interval); abort(); } };
-                        }
-                      }}
-                      imagePreviewHeight={170}
-                      stylePanelLayout="compact"
-                      styleLoadIndicatorPosition="center bottom"
-                      styleProgressIndicatorPosition="right bottom"
-                      styleButtonRemoveItemPosition="left bottom"
-                      styleButtonProcessItemPosition="right bottom"
-                    />
+                    <label 
+                      htmlFor="report-upload"
+                      className="flex flex-col items-center justify-center py-10 cursor-pointer group"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-accent/5 flex items-center justify-center text-accent mb-4 group-hover:scale-110 transition-transform">
+                        <UploadCloud size={24} />
+                      </div>
+                      <p className="text-xs font-bold text-foreground">
+                        {isDragging ? 'Lepaskan Gambar' : 'Tarik & Lepas Gambar'}
+                      </p>
+                      <p className="text-[10px] text-muted mt-1 font-medium italic">Opsional (Maks. 1 Gambar, 100 KB)</p>
+                    </label>
                   )}
                 </div>
               </div>
@@ -282,5 +405,14 @@ export default function UserReportPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function Plus({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
   );
 }

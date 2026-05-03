@@ -6,12 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { toggleLike, toggleSave } from "@/app/article/actions";
 import Link from "next/link";
+import ShareButton from "./ShareButton";
 
 interface InteractionButtonsProps {
   articleId: string;
+  title?: string;
 }
 
-export default function InteractionButtons({ articleId }: InteractionButtonsProps) {
+export default function InteractionButtons({ articleId, title = "Berita TIMVERSE" }: InteractionButtonsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -197,6 +199,9 @@ export default function InteractionButtons({ articleId }: InteractionButtonsProp
           <Bookmark size={18} />
         </Link>
       )}
+
+      {/* Share Button */}
+      <ShareButton title={title} />
     </div>
   );
 }

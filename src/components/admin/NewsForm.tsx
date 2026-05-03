@@ -240,7 +240,7 @@ export default function NewsForm() {
                     className="w-full bg-transparent border border-border/60 rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-indigo-500 transition-colors appearance-none cursor-pointer"
                   >
                     <option value="">Pilih kategori berita...</option>
-                    {categories.slice(1).map((cat) => (
+                    {categories.filter(c => c.name !== "Semua").map((cat) => (
                       <option key={cat.name} value={cat.name}>{cat.name}</option>
                     ))}
                   </select>

@@ -28,9 +28,19 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         setIsLoading(true);
         setError(null);
         
-        // 1. Get User Session
+        // 1. Get User Session & Profile
         const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user || null);
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name, username, avatar_url")
+            .eq("id", session.user.id)
+            .single();
+          
+          setUser({ ...session.user, ...profile });
+        } else {
+          setUser(null);
+        }
 
         // 2. Fetch Comments with Profiles
         const { data, error: fetchError } = await supabase
@@ -123,22 +133,30 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         {user ? (
           <form onSubmit={handleSubmit} className="group">
             <div className="flex gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden border border-border/40 bg-surface">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden border border-border/40 bg-surface shadow-sm">
                 <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} 
+                  src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username || user.id}`} 
                   alt="My Avatar" 
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 space-y-3">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Bagikan pemikiran Anda..."
-                  rows={3}
-                  className="w-full bg-surface/50 border border-border/60 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 resize-none transition-all"
-                  id="comment-input"
-                />
+                <div className="relative group">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Bagikan pemikiran Anda..."
+                    rows={3}
+                    maxLength={280}
+                    className="w-full bg-surface/50 border border-border/60 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/40 resize-none transition-all"
+                    id="comment-input"
+                  />
+                  <div className="absolute bottom-3 right-4">
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${newComment.length >= 280 ? 'text-red-500' : 'text-muted/60'}`}>
+                      {newComment.length}/280
+                    </span>
+                  </div>
+                </div>
                 {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
                 <div className="flex justify-end">
                   <button

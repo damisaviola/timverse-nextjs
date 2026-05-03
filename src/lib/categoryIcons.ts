@@ -10,6 +10,8 @@ import {
   Compass,
   Brain,
   Sparkles,
+  Map,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +26,21 @@ export const categoryIcons: Record<string, CategoryIconData> = {
     icon: LayoutGrid,
     color: "text-accent",
     gradient: "from-sky-500 to-cyan-400",
+  },
+  Mimika: {
+    icon: Map,
+    color: "text-indigo-500",
+    gradient: "from-indigo-600 to-blue-500",
+  },
+  Pemerintahan: {
+    icon: Landmark,
+    color: "text-cyan-500",
+    gradient: "from-cyan-500 to-blue-400",
+  },
+  Sosial: {
+    icon: Users,
+    color: "text-rose-500",
+    gradient: "from-rose-500 to-pink-400",
   },
   Teknologi: {
     icon: Cpu,

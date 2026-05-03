@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { userLogout } from "@/app/auth/actions";
 import { useRouter } from "next/navigation";
 import LogoutModal from "@/components/auth/LogoutModal";
+import ProfileEditModal from "@/components/profile/ProfileEditModal";
 
 export default function UserHomePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -21,6 +22,7 @@ export default function UserHomePage() {
   const [commentCount, setCommentCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const supabase = createClient();
   const router = useRouter();
 
@@ -185,9 +187,6 @@ export default function UserHomePage() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <button className="absolute bottom-0 right-0 p-2 bg-accent text-white rounded-full shadow-lg hover:scale-110 transition-transform">
-              <Edit3 size={14} />
-            </button>
           </div>
 
           {/* User Info */}
@@ -223,8 +222,11 @@ export default function UserHomePage() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto mt-4 md:mt-0">
-            <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface/80 text-foreground border border-border px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm">
-              <Settings size={16} /> Pengaturan
+            <button 
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface/80 text-foreground border border-border px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm"
+            >
+              <Settings size={16} /> Edit Profil
             </button>
             <button 
               onClick={() => setIsLogoutModalOpen(true)}
@@ -236,10 +238,17 @@ export default function UserHomePage() {
         </motion.div>
       </section>
 
-      {/* Logout Modal */}
       <LogoutModal 
         isOpen={isLogoutModalOpen} 
         onClose={() => setIsLogoutModalOpen(false)} 
+      />
+
+      {/* Edit Profile Modal */}
+      <ProfileEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        profile={profile}
+        onUpdate={(newProfile) => setProfile(newProfile)}
       />
 
       {/* Content Sections */}
