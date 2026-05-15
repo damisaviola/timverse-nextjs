@@ -288,7 +288,7 @@ export default function UserReportPage() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-2.5 sm:col-span-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted/60 ml-1">Email (Optional)</label>
                   <div className="group">
                     <input 

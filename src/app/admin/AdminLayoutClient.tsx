@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Search, X, LayoutDashboard, FileText, FilePlus, 
   BarChart3, AlertCircle, MessageSquare, FolderOpen, 
-  Settings, ChevronRight, CornerDownLeft
+  Settings, ChevronRight, CornerDownLeft, HardDrive
 } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -19,6 +19,7 @@ const ADMIN_MENU_ITEMS = [
   { label: "Daftar Pengaduan", href: "/admin/complaints", icon: AlertCircle, category: "Sistem" },
   { label: "Moderasi Komentar", href: "/admin/comments", icon: MessageSquare, category: "Sistem" },
   { label: "Kategori Berita", href: "/admin/categories", icon: FolderOpen, category: "Konten" },
+  { label: "Manajemen Storage", href: "/admin/storage", icon: HardDrive, category: "Sistem" },
   { label: "Pengaturan Portal", href: "/admin#settings", icon: Settings, category: "Sistem" },
 ];
 

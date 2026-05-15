@@ -10,6 +10,7 @@ import { ROUTES } from "@/lib/constants/routes";
 import { searchNews, incrementSearchCount } from "@/app/search/actions";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
 
 const navLinks = [
   { label: "Beranda", href: "/" },
@@ -235,6 +236,7 @@ export default function Navbar() {
             <div className="h-6 w-px bg-border/40 hidden md:block mx-2" />
 
             <div className="flex items-center gap-2">
+              <PushNotificationManager />
               <ThemeToggle />
               
               {!isLoading && (

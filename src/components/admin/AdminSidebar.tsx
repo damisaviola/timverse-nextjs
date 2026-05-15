@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Loader2,
   MessageSquare,
+  HardDrive,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminLogout } from "@/app/auth/actions";
@@ -94,6 +95,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
       label: "Sistem",
       links: [
         { label: "Analitik", href: "/admin/reports", icon: BarChart3 },
+        { label: "Storage", href: "/admin/storage", icon: HardDrive },
         { label: "Pengaduan", href: "/admin/complaints", icon: AlertCircle, badge: stats.reportsCount },
         { label: "Komentar", href: "/admin/comments", icon: MessageSquare, badge: stats.commentsCount },
         { label: "Pengaturan", href: "/admin#settings", icon: Settings },

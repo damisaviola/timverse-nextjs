@@ -78,10 +78,11 @@ export default function NewsForm() {
       } else {
         setSuccess(true);
         setIsPending(false);
+        // Refresh the current router cache immediately so subsequent navigations are fresh
+        router.refresh();
         // Redirect after 2 seconds
         setTimeout(() => {
           router.push("/admin");
-          router.refresh();
         }, 2000);
       }
     } catch (err) {

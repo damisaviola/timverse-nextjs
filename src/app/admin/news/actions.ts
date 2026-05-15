@@ -3,13 +3,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
+import { unstable_noStore as noStore } from "next/cache";
 import { requireAdmin } from "@/lib/auth-utils";
 import sharp from "sharp";
+import { sendPushNotification } from "@/app/actions/push-actions";
 
 /**
  * Mengambil semua berita dari database Supabase.
  */
 export async function fetchNews() {
+  noStore();
   try {
     const supabase = await createClient();
 
@@ -120,6 +123,14 @@ export async function createNews(formData: FormData) {
     revalidatePath("/");
     revalidatePath("/category");
     revalidatePath("/admin");
+
+    // Send push notification asynchronously (don't wait for it to finish so it doesn't block response)
+    sendPushNotification({
+      title: "Berita Terbaru: " + title,
+      body: excerpt || "Baca selengkapnya di Timverse News.",
+      url: `/article/${slug}`,
+      image: thumbnailUrl || undefined
+    }).catch(err => console.error("Push Notification Error:", err));
 
     return { success: true, slug };
   } catch (error: any) {

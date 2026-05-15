@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   // Mengizinkan akses HMR dari IP jaringan lokal untuk pengembangan mobile/tablet
-  allowedDevOrigins: ['192.168.1.3', '192.168.1.6'], 
+  allowedDevOrigins: ['192.168.1.3', '192.168.1.6', '192.168.1.4'], 
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb', // Default: 1mb
