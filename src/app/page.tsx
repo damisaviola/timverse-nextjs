@@ -8,7 +8,9 @@ import TrendingSearchSection from "@/components/home/TrendingSearchSection";
 import { fetchNews } from "@/app/admin/news/actions";
 import type { NewsArticle } from "@/data/mockNews";
 
-export const revalidate = 0; // Ensure fresh data
+// Mengaktifkan caching halaman utama (static page) dengan fallback revalidasi 1 jam.
+// Saat admin menambah/mengubah berita, revalidatePath("/") di server actions akan membersihkan cache ini secara instan (on-demand).
+export const revalidate = 3600; 
 
 export default async function HomePage() {
   const result = await fetchNews();

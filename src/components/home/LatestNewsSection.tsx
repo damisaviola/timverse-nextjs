@@ -36,10 +36,12 @@ export default function LatestNewsSection({ latestArticles }: LatestNewsSectionP
         </Link>
       </div>
 
-      {/* Grid: 3 columns on desktop, 2 on tablet, 1 on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Responsive layout: Horizontal scroll on mobile, Grid on tablet/desktop */}
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {latestArticles.map((article, i) => (
-          <NewsCard key={article.id} article={article} index={i} />
+          <div key={article.id} className="min-w-[85vw] max-w-[85vw] sm:min-w-0 sm:max-w-none snap-center sm:snap-align-none">
+            <NewsCard article={article} index={i} />
+          </div>
         ))}
       </div>
     </section>

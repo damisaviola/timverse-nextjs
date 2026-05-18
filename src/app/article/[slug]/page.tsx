@@ -23,6 +23,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     .from("news")
     .select("*")
     .eq("slug", slug)
+    .eq("status", "published")
     .single();
 
   let article = null;

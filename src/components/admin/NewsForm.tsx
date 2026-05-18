@@ -8,7 +8,20 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { categories } from "@/data/mockNews";
-import { createNews } from "@/app/admin/news/actions";
+import { createNews, updateNews } from "@/app/admin/news/actions";
+
+interface NewsFormProps {
+  initialData?: {
+    id: string;
+    title: string;
+    category: string;
+    excerpt: string | null;
+    content: string;
+    tags: string[];
+    thumbnail_url: string | null;
+    status: "draft" | "published";
+  } | null;
+}
 
 // Dynamically import TinyMCE with SSR disabled
 const TinyEditor = dynamic(() => import("./TinyEditor"), { 
@@ -23,19 +36,20 @@ const TinyEditor = dynamic(() => import("./TinyEditor"), {
   )
 });
 
-export default function NewsForm() {
+export default function NewsForm({ initialData = null }: NewsFormProps = {}) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [category, setCategory] = useState(initialData?.category || "");
+  const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
+  const [content, setContent] = useState(initialData?.content || "");
   const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.thumbnail_url || null);
+  const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [tagInput, setTagInput] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [savedStatus, setSavedStatus] = useState<"draft" | "published" | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,8 +69,8 @@ export default function NewsForm() {
     }
   };
 
-  const handlePublish = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitForm = async (e: React.FormEvent | null, status: "draft" | "published") => {
+    if (e) e.preventDefault();
     setIsPending(true);
     setError(null);
 
@@ -66,16 +80,24 @@ export default function NewsForm() {
     formData.append("excerpt", excerpt);
     formData.append("content", content);
     formData.append("tags", JSON.stringify(tags));
+    formData.append("status", status);
     if (file) {
       formData.append("thumbnail", file);
     }
 
     try {
-      const result = await createNews(formData);
+      let result;
+      if (initialData) {
+        result = await updateNews(initialData.id, formData);
+      } else {
+        result = await createNews(formData);
+      }
+
       if (result?.error) {
         setError(result.error);
         setIsPending(false);
       } else {
+        setSavedStatus(status);
         setSuccess(true);
         setIsPending(false);
         // Refresh the current router cache immediately so subsequent navigations are fresh
@@ -89,6 +111,10 @@ export default function NewsForm() {
       setError("Terjadi kesalahan teknis. Silakan coba lagi.");
       setIsPending(false);
     }
+  };
+
+  const handlePublish = async (e: React.FormEvent) => {
+    await submitForm(e, "published");
   };
 
   const handleAddTag = (e?: React.KeyboardEvent) => {
@@ -106,10 +132,9 @@ export default function NewsForm() {
     setTags(tags.filter(t => t !== tagToRemove));
   };
 
-  const handleSaveDraft = () => {
-    alert("Draft tersimpan! (Demo)");
+  const handleSaveDraft = async () => {
+    await submitForm(null, "draft");
   };
-
 
   if (success) {
     return (
@@ -134,8 +159,16 @@ export default function NewsForm() {
             <motion.path d="M5 13l4 4L19 7" />
           </motion.svg>
         </div>
-        <h2 className="text-2xl font-black text-foreground mb-2">Berita Berhasil Diterbitkan!</h2>
-        <p className="text-sm text-secondary mb-6">Artikel Anda sudah tayang dan bisa diakses oleh pembaca.</p>
+        <h2 className="text-2xl font-black text-foreground mb-2">
+          {initialData 
+            ? (savedStatus === "draft" ? "Draft Berhasil Diperbarui!" : "Pembaruan Berhasil Diterbitkan!")
+            : (savedStatus === "draft" ? "Draft Berhasil Disimpan!" : "Berita Berhasil Diterbitkan!")}
+        </h2>
+        <p className="text-sm text-secondary mb-6">
+          {savedStatus === "draft" 
+            ? "Draft artikel Anda telah disimpan." 
+            : "Artikel Anda sudah tayang dan bisa diakses oleh pembaca."}
+        </p>
         <div className="flex items-center justify-center gap-3">
           <a
             href="/admin"
@@ -364,7 +397,7 @@ export default function NewsForm() {
               ) : (
                 <>
                   <Send size={16} />
-                  Terbitkan Berita
+                  {initialData ? "Perbarui & Terbitkan" : "Terbitkan Berita"}
                 </>
               )}
             </button>
@@ -375,7 +408,7 @@ export default function NewsForm() {
               className="w-full flex items-center justify-center gap-2 bg-transparent border border-border/60 px-4 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50"
             >
               <Save size={16} />
-              Simpan Draft
+              {initialData ? "Perbarui Draft" : "Simpan Draft"}
             </button>
           </div>
         </div>

@@ -26,13 +26,14 @@ export default function RelatedNews({ articles }: RelatedNewsProps) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {articles.map((article, i) => (
           <motion.div
             key={article.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: i * 0.1 }}
+            className="min-w-[80vw] max-w-[80vw] sm:min-w-0 sm:max-w-none snap-center sm:snap-align-none"
           >
             <Link
               href={`/article/${article.slug}`}

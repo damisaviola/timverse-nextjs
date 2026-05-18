@@ -25,6 +25,7 @@ async function SearchResults({ query }: { query: string }) {
   const { data: results, error } = await supabase
     .from("news")
     .select("*")
+    .eq("status", "published")
     .or(`title.ilike.%${query}%,content.ilike.%${query}%,category.ilike.%${query}%`)
     .order("created_at", { ascending: false });
 

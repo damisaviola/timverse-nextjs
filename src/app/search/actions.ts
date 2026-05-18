@@ -14,6 +14,7 @@ export async function searchNews(query: string) {
     const { data, error } = await supabase
       .from("news")
       .select("id, title, slug, category, thumbnail_url")
+      .eq("status", "published")
       .or(`title.ilike.%${query}%,category.ilike.%${query}%`)
       .limit(5);
 

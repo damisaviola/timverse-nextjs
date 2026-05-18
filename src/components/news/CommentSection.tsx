@@ -83,29 +83,43 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     e.preventDefault();
     if (!newComment.trim() || isSubmitting) return;
 
-    setIsSubmitting(true);
+    const contentToSubmit = newComment.trim();
+    
+    // 1. Optimistic Update: Langsung tambahkan ke list komentar
+    const optimisticId = "optimistic-" + Date.now();
+    const optimisticComment = {
+      id: optimisticId,
+      content: contentToSubmit,
+      created_at: new Date().toISOString(),
+      user_id: user?.id,
+      profiles: {
+        full_name: user?.full_name,
+        username: user?.username,
+        avatar_url: user?.avatar_url,
+      },
+      isPending: true // Flag untuk UI loading state
+    };
+
+    setComments((prev) => [optimisticComment, ...prev]);
+    setNewComment(""); // Kosongkan input seketika
     setError(null);
+    setIsSubmitting(true);
 
     const formData = new FormData();
     formData.append("articleId", articleId);
-    formData.append("content", newComment.trim());
+    formData.append("content", contentToSubmit);
 
+    // 2. Eksekusi ke database di background
     const result = await postComment(formData);
 
     if (result?.error) {
+      // 3. Rollback jika gagal
       setError(result.error);
+      setComments((prev) => prev.filter(c => c.id !== optimisticId));
+      setNewComment(contentToSubmit); // Kembalikan teks input
       setIsSubmitting(false);
     } else {
-      setNewComment("");
-      // Optimistic update or refetch
-      const { data } = await supabase
-        .from("comments")
-        .select(`id, content, created_at, user_id, profiles(full_name, username, avatar_url)`)
-        .eq("id", (await supabase.from("comments").select("id").eq("news_id", articleId).order("created_at", { ascending: false }).limit(1).single()).data?.id) 
-        .single();
-      
-      // Actually just refetch all for simplicity or revalidatePath handles it if using server components
-      // Since this is client component, let's just refetch:
+      // 4. Update data secara diam-diam (silent sync) untuk mendapatkan ID asli dari DB
       const { data: refreshedData } = await supabase
         .from("comments")
         .select("id, content, created_at, user_id, profiles(full_name, username, avatar_url)")
@@ -212,7 +226,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="flex gap-4 group"
+                className={`flex gap-4 group ${comment.isPending ? "opacity-50 grayscale pointer-events-none" : "transition-opacity duration-300"}`}
               >
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden border border-border/40 bg-surface shadow-sm">
                   <img 

@@ -8,9 +8,9 @@ import {
   FileText, Eye, MessageSquare, TrendingUp, MoreHorizontal,
   PenSquare, Trash2, ExternalLink, ChevronRight, Search,
   ArrowUpDown, ChevronUp, ChevronDown, Filter, X, Loader2,
-  AlertTriangle, RefreshCw
+  AlertTriangle, RefreshCw, Send
 } from "lucide-react";
-import { fetchNews, deleteNews } from "@/app/admin/news/actions";
+import { fetchNews, deleteNews, publishNews } from "@/app/admin/news/actions";
 import AdminLoadingState from "@/components/admin/AdminLoadingState";
 
 // Type for news from Supabase
@@ -28,6 +28,7 @@ interface SupabaseNews {
   featured: boolean;
   views: number;
   created_at: string;
+  status: "draft" | "published";
 }
 
 type SortKey = "title" | "category" | "created_at" | "views";
@@ -45,6 +46,7 @@ export default function AdminDashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
   const itemsPerPage = 5;
 
   // Sync with URL search params
@@ -61,7 +63,7 @@ export default function AdminDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchNews();
+      const result = await fetchNews({ includeDrafts: true });
       if (result.error) {
         setError(result.error);
       }
@@ -92,6 +94,23 @@ export default function AdminDashboardPage() {
     } finally {
       setDeletingId(null);
       setDeleteConfirmId(null);
+    }
+  };
+
+  // Handle publish
+  const handlePublish = async (id: string) => {
+    setPublishingId(id);
+    try {
+      const result = await publishNews(id);
+      if (result.error) {
+        alert("Error: " + result.error);
+      } else {
+        setNews(prev => prev.map(n => n.id === id ? { ...n, status: "published" as const } : n));
+      }
+    } catch (err: any) {
+      alert("Gagal menerbitkan berita: " + err.message);
+    } finally {
+      setPublishingId(null);
     }
   };
 
@@ -278,7 +297,7 @@ export default function AdminDashboardPage() {
                     </th>
                     <th
                       onClick={() => handleSort("category")}
-                      className="w-[18%] px-4 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted cursor-pointer hover:text-indigo-500 transition-colors"
+                      className="w-[15%] px-4 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted cursor-pointer hover:text-indigo-500 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">
                         Kategori
@@ -286,6 +305,9 @@ export default function AdminDashboardPage() {
                           sortConfig.direction === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
                         ) : <ArrowUpDown size={12} className="opacity-30" />}
                       </div>
+                    </th>
+                    <th className="w-[10%] px-4 py-3.5 text-[11px] font-bold uppercase tracking-widest text-muted text-center">
+                      Status
                     </th>
                     <th
                       onClick={() => handleSort("views")}
@@ -371,6 +393,17 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
 
+                        {/* Status */}
+                        <td className="px-4 py-4 text-center">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider ${
+                            article.status === 'draft' 
+                              ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' 
+                              : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                          }`}>
+                            {article.status === 'draft' ? 'Draft' : 'Terbit'}
+                          </span>
+                        </td>
+
                         {/* Views */}
                         <td className="px-4 py-4 text-center">
                           <div className="flex flex-col items-center">
@@ -413,13 +446,36 @@ export default function AdminDashboardPage() {
                               </div>
                             ) : (
                               <>
+                                {article.status === 'draft' && (
+                                  <button
+                                    onClick={() => handlePublish(article.id)}
+                                    disabled={publishingId === article.id}
+                                    className="w-8 h-8 flex items-center justify-center text-muted hover:text-emerald-600 hover:bg-emerald-500/10 rounded-lg transition-all disabled:opacity-50"
+                                    title="Terbitkan Berita"
+                                  >
+                                    {publishingId === article.id ? (
+                                      <Loader2 size={14} className="animate-spin" />
+                                    ) : (
+                                      <Send size={14} />
+                                    )}
+                                  </button>
+                                )}
                                 <Link
                                   href={`/article/${article.slug}`}
-                                  className="w-8 h-8 flex items-center justify-center text-muted hover:text-indigo-600 hover:bg-indigo-600/10 rounded-lg transition-all"
-                                  title="Lihat Artikel"
+                                  className={`w-8 h-8 flex items-center justify-center text-muted hover:text-indigo-600 hover:bg-indigo-600/10 rounded-lg transition-all ${
+                                    article.status === 'draft' ? 'pointer-events-none opacity-30' : ''
+                                  }`}
+                                  title={article.status === 'draft' ? "Draft tidak dapat dilihat publik" : "Lihat Artikel"}
                                   target="_blank"
                                 >
                                   <ExternalLink size={14} />
+                                </Link>
+                                <Link
+                                  href={`/admin/news/edit/${article.id}`}
+                                  className="w-8 h-8 flex items-center justify-center text-muted hover:text-indigo-600 hover:bg-indigo-500/10 rounded-lg transition-all"
+                                  title="Edit Artikel"
+                                >
+                                  <PenSquare size={14} />
                                 </Link>
                                 <button
                                   onClick={() => setDeleteConfirmId(article.id)}

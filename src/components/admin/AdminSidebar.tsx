@@ -18,6 +18,8 @@ import {
   Loader2,
   MessageSquare,
   HardDrive,
+  Archive,
+  Users,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminLogout } from "@/app/auth/actions";
@@ -46,7 +48,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [stats, setStats] = useState({ newsCount: 0, reportsCount: 0, commentsCount: 0 });
+  const [stats, setStats] = useState({ newsCount: 0, reportsCount: 0, commentsCount: 0, draftsCount: 0 });
 
   // Use useEffect to handle hydration and fetch stats
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
       label: "Sumber Daya",
       links: [
         { label: "Semua Artikel", href: "/admin", icon: FileText, badge: stats.newsCount },
+        { label: "Berita Draft", href: "/admin/news/drafts", icon: Archive, badge: stats.draftsCount },
         { label: "Tambah Berita", href: "/admin/news/create", icon: FilePlus },
         { label: "Kategori", href: "/admin/categories", icon: FolderOpen },
       ],
@@ -94,6 +97,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
     {
       label: "Sistem",
       links: [
+        { label: "Pengguna", href: "/admin/users", icon: Users },
         { label: "Analitik", href: "/admin/reports", icon: BarChart3 },
         { label: "Storage", href: "/admin/storage", icon: HardDrive },
         { label: "Pengaduan", href: "/admin/complaints", icon: AlertCircle, badge: stats.reportsCount },

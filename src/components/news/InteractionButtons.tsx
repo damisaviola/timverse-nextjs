@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useOptimistic, startTransition } from "react";
 import { Heart, Bookmark, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +23,20 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
+
+  // Implementasi React 19 useOptimistic Hook untuk Like & Save
+  const [optimisticLike, addOptimisticLike] = useOptimistic(
+    { isLiked, likeCount },
+    (state, _: void) => ({
+      isLiked: !state.isLiked,
+      likeCount: state.isLiked ? state.likeCount - 1 : state.likeCount + 1,
+    })
+  );
+
+  const [optimisticSaved, addOptimisticSaved] = useOptimistic(
+    isSaved,
+    (state, _: void) => !state
+  );
 
   useEffect(() => {
     const fetchInteractions = async () => {
@@ -75,19 +89,18 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
     if (!user || isLiking) return;
     setIsLiking(true);
 
-    // Optimistic update
-    const wasLiked = isLiked;
-    setIsLiked(!wasLiked);
-    setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
+    // Memicu Optimistic Update (seketika mengubah UI)
+    startTransition(() => {
+      addOptimisticLike();
+    });
 
     const result = await toggleLike(articleId);
 
-    if (result?.error) {
-      // Rollback
-      setIsLiked(wasLiked);
-      setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
+    // Sinkronisasi base state dengan hasil sesungguhnya
+    if (!result?.error) {
+      setIsLiked((prev) => !prev);
+      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
     }
-
     setIsLiking(false);
   };
 
@@ -95,17 +108,17 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
     if (!user || isSaving) return;
     setIsSaving(true);
 
-    // Optimistic update
-    const wasSaved = isSaved;
-    setIsSaved(!wasSaved);
+    // Memicu Optimistic Update
+    startTransition(() => {
+      addOptimisticSaved();
+    });
 
     const result = await toggleSave(articleId);
 
-    if (result?.error) {
-      // Rollback
-      setIsSaved(wasSaved);
+    // Sinkronisasi base state
+    if (!result?.error) {
+      setIsSaved((prev) => !prev);
     }
-
     setIsSaving(false);
   };
 
@@ -127,15 +140,15 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
           onClick={handleLike}
           disabled={isLiking}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 border shadow-sm ${
-            isLiked
+            optimisticLike.isLiked
               ? "bg-rose-500/10 border-rose-500/30 text-rose-500"
               : "bg-surface/50 border-border/40 text-secondary hover:border-rose-500/30 hover:text-rose-500"
           }`}
-          aria-label={isLiked ? "Hapus Suka" : "Suka"}
+          aria-label={optimisticLike.isLiked ? "Hapus Suka" : "Suka"}
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={isLiked ? "liked" : "not-liked"}
+              key={optimisticLike.isLiked ? "liked" : "not-liked"}
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
@@ -143,13 +156,13 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
             >
               <Heart
                 size={18}
-                fill={isLiked ? "currentColor" : "none"}
-                strokeWidth={isLiked ? 0 : 2}
+                fill={optimisticLike.isLiked ? "currentColor" : "none"}
+                strokeWidth={optimisticLike.isLiked ? 0 : 2}
               />
             </motion.div>
           </AnimatePresence>
           <span className="text-xs font-black uppercase tracking-wider">
-            {likeCount > 0 ? likeCount : "Suka"}
+            {optimisticLike.likeCount > 0 ? optimisticLike.likeCount : "Suka"}
           </span>
         </motion.button>
       ) : (
@@ -169,15 +182,15 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
           onClick={handleSave}
           disabled={isSaving}
           className={`p-2.5 rounded-xl transition-all duration-300 border shadow-sm ${
-            isSaved
+            optimisticSaved
               ? "bg-blue-500/10 border-blue-500/30 text-blue-500"
               : "bg-surface/50 border-border/40 text-secondary hover:border-blue-500/30 hover:text-blue-500"
           }`}
-          aria-label={isSaved ? "Hapus Simpanan" : "Simpan"}
+          aria-label={optimisticSaved ? "Hapus Simpanan" : "Simpan"}
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={isSaved ? "saved" : "not-saved"}
+              key={optimisticSaved ? "saved" : "not-saved"}
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
@@ -185,8 +198,8 @@ export default function InteractionButtons({ articleId, title = "Berita TIMVERSE
             >
               <Bookmark
                 size={18}
-                fill={isSaved ? "currentColor" : "none"}
-                strokeWidth={isSaved ? 0 : 2}
+                fill={optimisticSaved ? "currentColor" : "none"}
+                strokeWidth={optimisticSaved ? 0 : 2}
               />
             </motion.div>
           </AnimatePresence>
