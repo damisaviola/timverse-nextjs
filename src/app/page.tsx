@@ -6,7 +6,10 @@ import LatestNewsSection from "@/components/home/LatestNewsSection";
 import OtherNewsSection from "@/components/home/OtherNewsSection";
 import TrendingSearchSection from "@/components/home/TrendingSearchSection";
 import { fetchNews } from "@/app/admin/news/actions";
-import type { NewsArticle } from "@/data/mockNews";
+import FeaturedCarousel from "@/components/home/FeaturedCarousel";
+import MimikaSection from "@/components/home/MimikaSection";
+import NasionalSection from "@/components/home/NasionalSection";
+import { newsArticles, type NewsArticle } from "@/data/mockNews";
 
 // Mengaktifkan caching halaman utama (static page) dengan fallback revalidasi 1 jam.
 // Saat admin menambah/mengubah berita, revalidatePath("/") di server actions akan membersihkan cache ini secara instan (on-demand).
@@ -57,13 +60,24 @@ export default async function HomePage() {
   // 1. Berita Populer: All-time views terbanyak
   const popularArticles = [...mappedNews].sort((a, b) => b.views - a.views).slice(0, 5);
   
-  // 2. Berita Paling Dicari (Trending): Berita dengan search_count terbanyak
-  const trendingArticles = [...mappedNews]
-    .sort((a, b) => (b.search_count || 0) - (a.search_count || 0))
-    .slice(0, 6);
+  // 2. Berita Paling Dicari (Trending): Berita dengan search_count terbanyak (fallback ke views terbanyak jika sama/0)
+  // Jika total berita dari database kurang dari 6, backfill dengan mock data agar pas 6 berita.
+  let trendingBase = [...mappedNews];
+  if (trendingBase.length < 6) {
+    const needed = 6 - trendingBase.length;
+    const mockBackfill = newsArticles
+      .filter((mock) => !trendingBase.some((db) => db.title === mock.title || db.slug === mock.slug))
+      .slice(0, needed);
+    trendingBase = [...trendingBase, ...mockBackfill];
+  }
 
-  // Jika trendingArticles kosong, tampilkan saja berita terpopuler
-  const displayTrending = trendingArticles.length > 0 ? trendingArticles : popularArticles;
+  const displayTrending = trendingBase
+    .sort((a, b) => {
+      const searchDiff = (b.search_count || 0) - (a.search_count || 0);
+      if (searchDiff !== 0) return searchDiff;
+      return b.views - a.views;
+    })
+    .slice(0, 6);
 
   // 3. Latest News (Top 3 terbaru)
   const latestArticles = sortedNews.slice(0, 3);
@@ -71,13 +85,54 @@ export default async function HomePage() {
   // 4. Other News (Sisa berita)
   const otherNews = sortedNews.length > 3 ? sortedNews.slice(3) : sortedNews;
 
+  // 5. Carousel Articles: Berita Pilihan (featured atau terpopuler)
+  const carouselArticles = mappedNews.filter((n) => n.featured).length > 0
+    ? mappedNews.filter((n) => n.featured).slice(0, 5)
+    : [...mappedNews].sort((a, b) => b.views - a.views).slice(0, 5);
+
+  // 6. Berita Mimika: Kategori "Mimika" atau mengandung kata "Mimika" di judul/ringkasan
+  const mimikaArticles = sortedNews.filter(
+    (n) =>
+      n.category.toLowerCase() === "mimika" ||
+      n.title.toLowerCase().includes("mimika") ||
+      n.excerpt.toLowerCase().includes("mimika")
+  );
+
+  // 7. Berita Nasional: Kategori "Nasional" atau mengandung topik nasional/pemerintahan/Indonesia
+  const dbNasional = sortedNews.filter(
+    (n) =>
+      n.category.toLowerCase() === "nasional" ||
+      n.title.toLowerCase().includes("indonesia") ||
+      n.title.toLowerCase().includes("pemerintah") ||
+      n.title.toLowerCase().includes("nasional")
+  );
+  
+  let nasionalArticles = [...dbNasional];
+  if (nasionalArticles.length < 3) {
+    const needed = 3 - nasionalArticles.length;
+    const mockNasional = newsArticles
+      .filter(
+        (mock) =>
+          mock.category.toLowerCase() === "nasional" ||
+          mock.title.toLowerCase().includes("indonesia") ||
+          mock.title.toLowerCase().includes("pemerintah") ||
+          mock.title.toLowerCase().includes("nasional")
+      )
+      .filter((mock) => !nasionalArticles.some((db) => db.title === mock.title || db.slug === mock.slug))
+      .slice(0, needed);
+    nasionalArticles = [...nasionalArticles, ...mockNasional];
+  }
+
   return (
     <>
       <BreakingNewsTicker headlines={headlines} />
       <HeroSection featured={featured} />
       <CategorySection />
+      {carouselArticles.length > 0 && <FeaturedCarousel articles={carouselArticles} />}
       {popularArticles.length > 0 && <PopularNewsSection popularArticles={popularArticles} />}
       {displayTrending.length > 0 && <TrendingSearchSection articles={displayTrending} />}
+      {mimikaArticles.length > 0 && <MimikaSection articles={mimikaArticles} />}
+      {nasionalArticles.length > 0 && <NasionalSection articles={nasionalArticles} />}
       {latestArticles.length > 0 && <LatestNewsSection latestArticles={latestArticles} />}
       {otherNews.length > 0 && <OtherNewsSection articles={otherNews} />}
     </>

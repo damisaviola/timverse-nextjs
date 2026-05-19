@@ -37,7 +37,7 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
                 {article.category}
               </span>
               <h3 className="text-sm font-semibold text-foreground mt-1 line-clamp-2 group-hover:text-accent transition-colors duration-200">
-                {article.title}
+                <span className="hover-underline">{article.title}</span>
               </h3>
               <div className="flex items-center gap-2 mt-1.5 text-muted">
                 <Clock size={12} />
@@ -74,7 +74,7 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
                 {article.category}
               </span>
               <h3 className="text-sm font-semibold text-foreground mt-1.5 line-clamp-2 group-hover:text-accent transition-colors duration-200">
-                {article.title}
+                <span className="hover-underline">{article.title}</span>
               </h3>
               <div className="flex items-center gap-2 mt-2 text-muted">
                 <Clock size={12} />
@@ -121,7 +121,7 @@ export default function NewsCard({ article, index, variant = "default" }: NewsCa
               {article.category}
             </span>
             <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors duration-200 leading-snug mt-1.5">
-              {article.title}
+              <span className="hover-underline">{article.title}</span>
             </h3>
             <p className="mt-2 text-sm text-secondary line-clamp-2 leading-relaxed">
               {article.excerpt}

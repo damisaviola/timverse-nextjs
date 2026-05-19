@@ -63,7 +63,7 @@ export default function PopularNewsSection({ popularArticles }: PopularNewsSecti
                   {topArticle.category}
                 </span>
                 <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight max-w-xl group-hover:text-orange-200 transition-colors duration-300">
-                  {topArticle.title}
+                  <span className="hover-underline">{topArticle.title}</span>
                 </h3>
                 <p className="hidden sm:block mt-2 text-sm text-gray-200 max-w-lg leading-relaxed line-clamp-2">
                   {topArticle.excerpt}
@@ -114,7 +114,7 @@ export default function PopularNewsSection({ popularArticles }: PopularNewsSecti
                       {article.category}
                     </span>
                     <h3 className="text-sm font-semibold text-foreground mt-1 line-clamp-2 group-hover:text-orange-500 transition-colors duration-200 leading-snug">
-                      {article.title}
+                      <span className="hover-underline">{article.title}</span>
                     </h3>
                     <div className="flex items-center gap-3 mt-1.5 text-muted">
                       <span className="flex items-center gap-1 text-xs">

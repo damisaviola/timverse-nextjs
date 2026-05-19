@@ -44,7 +44,7 @@ export default function HeroSection({ featured }: HeroSectionProps) {
 
               {/* Title */}
               <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-white leading-tight max-w-3xl group-hover:text-accent-dark transition-colors duration-300">
-                {featured.title}
+                <span className="hover-underline">{featured.title}</span>
               </h2>
 
               {/* Excerpt */}
